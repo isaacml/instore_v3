@@ -16,5 +16,10 @@ namespace player
         {
             InitializeComponent();
         }
+
+        private void btnEnviarIni_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
