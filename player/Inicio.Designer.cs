@@ -28,81 +28,76 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnEnviarIni = new System.Windows.Forms.Button();
-            this.txtPassIni = new System.Windows.Forms.TextBox();
-            this.lblPassIni = new System.Windows.Forms.Label();
-            this.txtUserIni = new System.Windows.Forms.TextBox();
-            this.lblUserIni = new System.Windows.Forms.Label();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.Música = new System.Windows.Forms.TabPage();
+            this.Tienda = new System.Windows.Forms.TabPage();
+            this.Configuración = new System.Windows.Forms.TabPage();
+            this.tabControl1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // btnEnviarIni
+            // tabControl1
             // 
-            this.btnEnviarIni.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnEnviarIni.Location = new System.Drawing.Point(377, 294);
-            this.btnEnviarIni.Name = "btnEnviarIni";
-            this.btnEnviarIni.Size = new System.Drawing.Size(76, 29);
-            this.btnEnviarIni.TabIndex = 4;
-            this.btnEnviarIni.Text = "Enviar";
-            this.btnEnviarIni.UseVisualStyleBackColor = true;
-            this.btnEnviarIni.Click += new System.EventHandler(this.btnEnviarIni_Click);
+            this.tabControl1.Controls.Add(this.Música);
+            this.tabControl1.Controls.Add(this.Tienda);
+            this.tabControl1.Controls.Add(this.Configuración);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(800, 450);
+            this.tabControl1.TabIndex = 0;
             // 
-            // txtPassIni
+            // Música
             // 
-            this.txtPassIni.Location = new System.Drawing.Point(336, 238);
-            this.txtPassIni.Name = "txtPassIni";
-            this.txtPassIni.PasswordChar = '*';
-            this.txtPassIni.Size = new System.Drawing.Size(154, 20);
-            this.txtPassIni.TabIndex = 3;
+            this.Música.Location = new System.Drawing.Point(4, 22);
+            this.Música.Name = "Música";
+            this.Música.Padding = new System.Windows.Forms.Padding(3);
+            this.Música.Size = new System.Drawing.Size(792, 424);
+            this.Música.TabIndex = 0;
+            this.Música.Text = "Música";
+            this.Música.ToolTipText = "Música";
+            this.Música.UseVisualStyleBackColor = true;
             // 
-            // lblPassIni
+            // Tienda
             // 
-            this.lblPassIni.AutoSize = true;
-            this.lblPassIni.Location = new System.Drawing.Point(333, 208);
-            this.lblPassIni.Name = "lblPassIni";
-            this.lblPassIni.Size = new System.Drawing.Size(61, 13);
-            this.lblPassIni.TabIndex = 2;
-            this.lblPassIni.Text = "Contraseña";
+            this.Tienda.Location = new System.Drawing.Point(4, 22);
+            this.Tienda.Name = "Tienda";
+            this.Tienda.Padding = new System.Windows.Forms.Padding(3);
+            this.Tienda.Size = new System.Drawing.Size(792, 424);
+            this.Tienda.TabIndex = 1;
+            this.Tienda.Text = "Tienda";
+            this.Tienda.ToolTipText = "Tienda";
+            this.Tienda.UseVisualStyleBackColor = true;
             // 
-            // txtUserIni
+            // Configuración
             // 
-            this.txtUserIni.Location = new System.Drawing.Point(336, 162);
-            this.txtUserIni.Name = "txtUserIni";
-            this.txtUserIni.Size = new System.Drawing.Size(154, 20);
-            this.txtUserIni.TabIndex = 1;
-            // 
-            // lblUserIni
-            // 
-            this.lblUserIni.AutoSize = true;
-            this.lblUserIni.Location = new System.Drawing.Point(333, 132);
-            this.lblUserIni.Name = "lblUserIni";
-            this.lblUserIni.Size = new System.Drawing.Size(98, 13);
-            this.lblUserIni.TabIndex = 0;
-            this.lblUserIni.Text = "Nombre de Usuario";
+            this.Configuración.Location = new System.Drawing.Point(4, 22);
+            this.Configuración.Name = "Configuración";
+            this.Configuración.Size = new System.Drawing.Size(792, 424);
+            this.Configuración.TabIndex = 2;
+            this.Configuración.Text = "Configuración";
+            this.Configuración.ToolTipText = "Configuración";
+            this.Configuración.UseVisualStyleBackColor = true;
             // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
-            this.Controls.Add(this.lblUserIni);
-            this.Controls.Add(this.txtUserIni);
-            this.Controls.Add(this.lblPassIni);
-            this.Controls.Add(this.txtPassIni);
-            this.Controls.Add(this.btnEnviarIni);
+            this.Controls.Add(this.tabControl1);
             this.Name = "Inicio";
             this.Text = "Panel de Inicio";
+            this.tabControl1.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
         #endregion
 
-        private System.Windows.Forms.Button btnEnviarIni;
-        private System.Windows.Forms.TextBox txtPassIni;
-        private System.Windows.Forms.Label lblPassIni;
-        private System.Windows.Forms.TextBox txtUserIni;
-        private System.Windows.Forms.Label lblUserIni;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage Música;
+        private System.Windows.Forms.TabPage Tienda;
+        private System.Windows.Forms.TabPage Configuración;
     }
 }
 
