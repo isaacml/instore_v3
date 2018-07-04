@@ -16,5 +16,13 @@ namespace player
         {
             InitializeComponent();
         }
+
+        private void msgIns_Enter(object sender, EventArgs e)
+        {
+            if (openMsgInst.ShowDialog() == DialogResult.OK)
+            {
+                msgIns.Text = openMsgInst.FileName;
+            }
+        }
     }
 }
