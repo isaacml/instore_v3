@@ -12,6 +12,8 @@ namespace player
 {
     public partial class Inicio : Form
     {
+        private bool enable_salir = false;
+
         public Inicio()
         {
             InitializeComponent();
@@ -23,6 +25,31 @@ namespace player
             {
                 msgIns.Text = openMsgInst.FileName;
             }
+        }
+
+        private void Inicio_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (!enable_salir)
+            {
+                e.Cancel = true;
+                this.Hide();
+                notifyBarIcon.ShowBalloonTip(100, "HMPro", "Ejecución en 2º Plano", ToolTipIcon.Info);
+            }
+        }
+
+        private void mostrarToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+        }
+
+        private void SalirToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+        }
+
+        private void notifyBarIcon_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.Show();
         }
     }
 }
