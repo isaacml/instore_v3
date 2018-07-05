@@ -32,6 +32,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Inicio));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Música = new System.Windows.Forms.TabPage();
+            this.lblMusicDirs = new System.Windows.Forms.Label();
+            this.musicDirs = new System.Windows.Forms.TextBox();
             this.lblMsgInst = new System.Windows.Forms.Label();
             this.sendMsgInst = new System.Windows.Forms.Button();
             this.msgIns = new System.Windows.Forms.TextBox();
@@ -46,6 +48,10 @@
             this.mostrarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.SalirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyBarIcon = new System.Windows.Forms.NotifyIcon(this.components);
+            this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
+            this.listMusicDirs = new System.Windows.Forms.CheckedListBox();
+            this.lblListDirMusic = new System.Windows.Forms.Label();
+            this.sendListDirs = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.barra_estado.SuspendLayout();
@@ -66,6 +72,11 @@
             // 
             // Música
             // 
+            this.Música.Controls.Add(this.sendListDirs);
+            this.Música.Controls.Add(this.lblListDirMusic);
+            this.Música.Controls.Add(this.listMusicDirs);
+            this.Música.Controls.Add(this.lblMusicDirs);
+            this.Música.Controls.Add(this.musicDirs);
             this.Música.Controls.Add(this.lblMsgInst);
             this.Música.Controls.Add(this.sendMsgInst);
             this.Música.Controls.Add(this.msgIns);
@@ -78,10 +89,28 @@
             this.Música.ToolTipText = "Música";
             this.Música.UseVisualStyleBackColor = true;
             // 
+            // lblMusicDirs
+            // 
+            this.lblMusicDirs.AutoSize = true;
+            this.lblMusicDirs.Location = new System.Drawing.Point(153, 53);
+            this.lblMusicDirs.Name = "lblMusicDirs";
+            this.lblMusicDirs.Size = new System.Drawing.Size(111, 13);
+            this.lblMusicDirs.TabIndex = 4;
+            this.lblMusicDirs.Text = "Seleccionar Directorio";
+            // 
+            // musicDirs
+            // 
+            this.musicDirs.Location = new System.Drawing.Point(156, 69);
+            this.musicDirs.Name = "musicDirs";
+            this.musicDirs.Size = new System.Drawing.Size(207, 20);
+            this.musicDirs.TabIndex = 3;
+            this.musicDirs.Text = "C:";
+            this.musicDirs.Enter += new System.EventHandler(this.musicDirs_Enter);
+            // 
             // lblMsgInst
             // 
             this.lblMsgInst.AutoSize = true;
-            this.lblMsgInst.Location = new System.Drawing.Point(141, 341);
+            this.lblMsgInst.Location = new System.Drawing.Point(153, 334);
             this.lblMsgInst.Name = "lblMsgInst";
             this.lblMsgInst.Size = new System.Drawing.Size(102, 13);
             this.lblMsgInst.TabIndex = 2;
@@ -89,7 +118,7 @@
             // 
             // sendMsgInst
             // 
-            this.sendMsgInst.Location = new System.Drawing.Point(510, 354);
+            this.sendMsgInst.Location = new System.Drawing.Point(522, 347);
             this.sendMsgInst.Name = "sendMsgInst";
             this.sendMsgInst.Size = new System.Drawing.Size(75, 23);
             this.sendMsgInst.TabIndex = 1;
@@ -98,7 +127,7 @@
             // 
             // msgIns
             // 
-            this.msgIns.Location = new System.Drawing.Point(144, 357);
+            this.msgIns.Location = new System.Drawing.Point(156, 350);
             this.msgIns.Name = "msgIns";
             this.msgIns.Size = new System.Drawing.Size(360, 20);
             this.msgIns.TabIndex = 0;
@@ -190,6 +219,42 @@
             this.notifyBarIcon.Visible = true;
             this.notifyBarIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyBarIcon_MouseDoubleClick);
             // 
+            // openMusicDirs
+            // 
+            this.openMusicDirs.SelectedPath = "C:";
+            // 
+            // listMusicDirs
+            // 
+            this.listMusicDirs.FormattingEnabled = true;
+            this.listMusicDirs.Items.AddRange(new object[] {
+            "Jazz",
+            "Regeton",
+            "Rock",
+            "Dance",
+            "Hip Hop"});
+            this.listMusicDirs.Location = new System.Drawing.Point(156, 136);
+            this.listMusicDirs.Name = "listMusicDirs";
+            this.listMusicDirs.Size = new System.Drawing.Size(360, 184);
+            this.listMusicDirs.TabIndex = 5;
+            // 
+            // lblListDirMusic
+            // 
+            this.lblListDirMusic.AutoSize = true;
+            this.lblListDirMusic.Location = new System.Drawing.Point(156, 117);
+            this.lblListDirMusic.Name = "lblListDirMusic";
+            this.lblListDirMusic.Size = new System.Drawing.Size(109, 13);
+            this.lblListDirMusic.TabIndex = 6;
+            this.lblListDirMusic.Text = "Listado de Directorios";
+            // 
+            // sendListDirs
+            // 
+            this.sendListDirs.Location = new System.Drawing.Point(523, 296);
+            this.sendListDirs.Name = "sendListDirs";
+            this.sendListDirs.Size = new System.Drawing.Size(75, 23);
+            this.sendListDirs.TabIndex = 7;
+            this.sendListDirs.Text = "Seleccionar";
+            this.sendListDirs.UseVisualStyleBackColor = true;
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -233,6 +298,12 @@
         private System.Windows.Forms.ToolStripMenuItem mostrarToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem SalirToolStripMenuItem;
         private System.Windows.Forms.NotifyIcon notifyBarIcon;
+        private System.Windows.Forms.FolderBrowserDialog openMusicDirs;
+        private System.Windows.Forms.Label lblMusicDirs;
+        private System.Windows.Forms.TextBox musicDirs;
+        private System.Windows.Forms.Label lblListDirMusic;
+        private System.Windows.Forms.CheckedListBox listMusicDirs;
+        private System.Windows.Forms.Button sendListDirs;
     }
 }
 
