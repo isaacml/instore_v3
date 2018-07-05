@@ -65,5 +65,58 @@ namespace player
         {
             this.Show();
         }
+        //Ajustes de volumen para el track bar de musica
+        private void trackBarMusica_Scroll(object sender, EventArgs e)
+        {
+            if (trackBarMusica.Value >= trackBarFade.Value)
+            {   
+                lblMusicContainer.Text = trackBarMusica.Value.ToString();
+            }
+            else
+            {
+                trackBarMusica.Value = trackBarFade.Value;
+            }
+        }
+        //Ajustes de volumen para el track bar de publicidad
+        private void trackBarPubli_Scroll(object sender, EventArgs e)
+        {
+            if (trackBarPubli.Value >= trackBarFade.Value)
+            {
+                lblPubliContainer.Text = trackBarPubli.Value.ToString();
+            }
+            else
+            {
+                trackBarPubli.Value = trackBarFade.Value;
+            }
+        }
+        //Ajustes de volumen para el track bar de mensajes
+        private void trackBarMsg_Scroll(object sender, EventArgs e)
+        {
+            if (trackBarMsg.Value >= trackBarFade.Value)
+            {
+                lblMsgContainer.Text = trackBarMsg.Value.ToString();
+            }
+            else
+            {
+                trackBarMsg.Value = trackBarFade.Value;
+            }
+        }
+        //Ajustes de volumen para el track bar de Fade Out
+        private void trackBarFade_Scroll(object sender, EventArgs e)
+        {
+            //Se calcula el valor máximo para el fade out
+            int max = 0;
+            //Se obtiene el valor minimo de los otros tracks
+            max = Math.Min(trackBarMusica.Value, trackBarPubli.Value);
+            max = Math.Min(max, trackBarMsg.Value);
+            //Se comprueba que el fade no supera ese valor
+            if (max >= trackBarFade.Value)
+                lblFadeContainer.Text = trackBarFade.Value.ToString();
+            else
+            {
+                trackBarFade.Value = max;
+            }
+        }
+        
     }
 }
