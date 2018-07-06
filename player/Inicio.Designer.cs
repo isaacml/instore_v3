@@ -59,6 +59,14 @@
             this.lblDesde = new System.Windows.Forms.Label();
             this.timeDesde = new System.Windows.Forms.DateTimePicker();
             this.Configuración = new System.Windows.Forms.TabPage();
+            this.groupBoxDom = new System.Windows.Forms.GroupBox();
+            this.btnAddDom = new System.Windows.Forms.Button();
+            this.domTienda = new System.Windows.Forms.ComboBox();
+            this.domProv = new System.Windows.Forms.ComboBox();
+            this.domRegion = new System.Windows.Forms.ComboBox();
+            this.domPais = new System.Windows.Forms.ComboBox();
+            this.domAlmacen = new System.Windows.Forms.ComboBox();
+            this.domEntidad = new System.Windows.Forms.ComboBox();
             this.barra_estado = new System.Windows.Forms.StatusStrip();
             this.barStInfoServ = new System.Windows.Forms.ToolStripStatusLabel();
             this.barStStatus = new System.Windows.Forms.ToolStripProgressBar();
@@ -69,6 +77,15 @@
             this.SalirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyBarIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
+            this.listBoxDom = new System.Windows.Forms.ListBox();
+            this.btnBorrarDom = new System.Windows.Forms.Button();
+            this.txtServer = new System.Windows.Forms.TextBox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
+            this.btnSendServer = new System.Windows.Forms.Button();
+            this.btnSendProxy = new System.Windows.Forms.Button();
+            this.lblServer = new System.Windows.Forms.Label();
+            this.lblProxy = new System.Windows.Forms.Label();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -78,8 +95,11 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBarPubli)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMusica)).BeginInit();
             this.groupHorario.SuspendLayout();
+            this.Configuración.SuspendLayout();
+            this.groupBoxDom.SuspendLayout();
             this.barra_estado.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -389,6 +409,13 @@
             // 
             // Configuración
             // 
+            this.Configuración.Controls.Add(this.lblProxy);
+            this.Configuración.Controls.Add(this.lblServer);
+            this.Configuración.Controls.Add(this.btnSendProxy);
+            this.Configuración.Controls.Add(this.btnSendServer);
+            this.Configuración.Controls.Add(this.textBox1);
+            this.Configuración.Controls.Add(this.txtServer);
+            this.Configuración.Controls.Add(this.groupBoxDom);
             this.Configuración.Location = new System.Drawing.Point(4, 22);
             this.Configuración.Name = "Configuración";
             this.Configuración.Size = new System.Drawing.Size(752, 431);
@@ -396,6 +423,91 @@
             this.Configuración.Text = "Configuración";
             this.Configuración.ToolTipText = "Configuración";
             this.Configuración.UseVisualStyleBackColor = true;
+            // 
+            // groupBoxDom
+            // 
+            this.groupBoxDom.Controls.Add(this.btnBorrarDom);
+            this.groupBoxDom.Controls.Add(this.listBoxDom);
+            this.groupBoxDom.Controls.Add(this.btnAddDom);
+            this.groupBoxDom.Controls.Add(this.domTienda);
+            this.groupBoxDom.Controls.Add(this.domProv);
+            this.groupBoxDom.Controls.Add(this.domRegion);
+            this.groupBoxDom.Controls.Add(this.domPais);
+            this.groupBoxDom.Controls.Add(this.domAlmacen);
+            this.groupBoxDom.Controls.Add(this.domEntidad);
+            this.groupBoxDom.Location = new System.Drawing.Point(108, 21);
+            this.groupBoxDom.Name = "groupBoxDom";
+            this.groupBoxDom.Size = new System.Drawing.Size(565, 295);
+            this.groupBoxDom.TabIndex = 0;
+            this.groupBoxDom.TabStop = false;
+            this.groupBoxDom.Text = "Configuración de Dominios";
+            // 
+            // btnAddDom
+            // 
+            this.btnAddDom.BackColor = System.Drawing.Color.PaleGreen;
+            this.btnAddDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnAddDom.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnAddDom.Location = new System.Drawing.Point(233, 111);
+            this.btnAddDom.Margin = new System.Windows.Forms.Padding(0);
+            this.btnAddDom.Name = "btnAddDom";
+            this.btnAddDom.Size = new System.Drawing.Size(121, 23);
+            this.btnAddDom.TabIndex = 6;
+            this.btnAddDom.Text = "Añadir";
+            this.btnAddDom.UseVisualStyleBackColor = false;
+            // 
+            // domTienda
+            // 
+            this.domTienda.FormattingEnabled = true;
+            this.domTienda.Location = new System.Drawing.Point(401, 76);
+            this.domTienda.Name = "domTienda";
+            this.domTienda.Size = new System.Drawing.Size(121, 21);
+            this.domTienda.TabIndex = 5;
+            this.domTienda.Text = "<Tienda>";
+            // 
+            // domProv
+            // 
+            this.domProv.FormattingEnabled = true;
+            this.domProv.Location = new System.Drawing.Point(233, 76);
+            this.domProv.Name = "domProv";
+            this.domProv.Size = new System.Drawing.Size(121, 21);
+            this.domProv.TabIndex = 4;
+            this.domProv.Text = "<Provincia>";
+            // 
+            // domRegion
+            // 
+            this.domRegion.FormattingEnabled = true;
+            this.domRegion.Location = new System.Drawing.Point(54, 77);
+            this.domRegion.Name = "domRegion";
+            this.domRegion.Size = new System.Drawing.Size(121, 21);
+            this.domRegion.TabIndex = 3;
+            this.domRegion.Text = "<Región>";
+            // 
+            // domPais
+            // 
+            this.domPais.FormattingEnabled = true;
+            this.domPais.Location = new System.Drawing.Point(401, 37);
+            this.domPais.Name = "domPais";
+            this.domPais.Size = new System.Drawing.Size(121, 21);
+            this.domPais.TabIndex = 2;
+            this.domPais.Text = "<País>";
+            // 
+            // domAlmacen
+            // 
+            this.domAlmacen.FormattingEnabled = true;
+            this.domAlmacen.Location = new System.Drawing.Point(233, 37);
+            this.domAlmacen.Name = "domAlmacen";
+            this.domAlmacen.Size = new System.Drawing.Size(121, 21);
+            this.domAlmacen.TabIndex = 1;
+            this.domAlmacen.Text = "<Almacen>";
+            // 
+            // domEntidad
+            // 
+            this.domEntidad.FormattingEnabled = true;
+            this.domEntidad.Location = new System.Drawing.Point(54, 37);
+            this.domEntidad.Name = "domEntidad";
+            this.domEntidad.Size = new System.Drawing.Size(121, 21);
+            this.domEntidad.TabIndex = 0;
+            this.domEntidad.Text = "<Entidad>";
             // 
             // barra_estado
             // 
@@ -466,6 +578,83 @@
             // 
             this.openMusicDirs.SelectedPath = "C:";
             // 
+            // listBoxDom
+            // 
+            this.listBoxDom.FormattingEnabled = true;
+            this.listBoxDom.Items.AddRange(new object[] {
+            "Dinosol - Supersol - España - Andalucía - Málaga - C01223M"});
+            this.listBoxDom.Location = new System.Drawing.Point(54, 155);
+            this.listBoxDom.Name = "listBoxDom";
+            this.listBoxDom.Size = new System.Drawing.Size(468, 95);
+            this.listBoxDom.TabIndex = 7;
+            // 
+            // btnBorrarDom
+            // 
+            this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
+            this.btnBorrarDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBorrarDom.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnBorrarDom.Location = new System.Drawing.Point(233, 256);
+            this.btnBorrarDom.Name = "btnBorrarDom";
+            this.btnBorrarDom.Size = new System.Drawing.Size(121, 23);
+            this.btnBorrarDom.TabIndex = 8;
+            this.btnBorrarDom.Text = "Borrar";
+            this.btnBorrarDom.UseVisualStyleBackColor = false;
+            // 
+            // txtServer
+            // 
+            this.txtServer.Location = new System.Drawing.Point(255, 331);
+            this.txtServer.Name = "txtServer";
+            this.txtServer.Size = new System.Drawing.Size(300, 20);
+            this.txtServer.TabIndex = 1;
+            this.txtServer.Text = "http:\\\\dss.vidanio.com:8080";
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(255, 370);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(300, 20);
+            this.textBox1.TabIndex = 2;
+            // 
+            // btnSendServer
+            // 
+            this.btnSendServer.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnSendServer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSendServer.Location = new System.Drawing.Point(561, 329);
+            this.btnSendServer.Name = "btnSendServer";
+            this.btnSendServer.Size = new System.Drawing.Size(75, 23);
+            this.btnSendServer.TabIndex = 3;
+            this.btnSendServer.Text = "Enviar";
+            this.btnSendServer.UseVisualStyleBackColor = false;
+            // 
+            // btnSendProxy
+            // 
+            this.btnSendProxy.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnSendProxy.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSendProxy.Location = new System.Drawing.Point(561, 368);
+            this.btnSendProxy.Name = "btnSendProxy";
+            this.btnSendProxy.Size = new System.Drawing.Size(75, 23);
+            this.btnSendProxy.TabIndex = 4;
+            this.btnSendProxy.Text = "Enviar";
+            this.btnSendProxy.UseVisualStyleBackColor = false;
+            // 
+            // lblServer
+            // 
+            this.lblServer.AutoSize = true;
+            this.lblServer.Location = new System.Drawing.Point(158, 334);
+            this.lblServer.Name = "lblServer";
+            this.lblServer.Size = new System.Drawing.Size(91, 13);
+            this.lblServer.TabIndex = 5;
+            this.lblServer.Text = "URL del Servidor:";
+            // 
+            // lblProxy
+            // 
+            this.lblProxy.AutoSize = true;
+            this.lblProxy.Location = new System.Drawing.Point(159, 375);
+            this.lblProxy.Name = "lblProxy";
+            this.lblProxy.Size = new System.Drawing.Size(78, 13);
+            this.lblProxy.TabIndex = 6;
+            this.lblProxy.Text = "URL del Proxy:";
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -492,9 +681,13 @@
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMusica)).EndInit();
             this.groupHorario.ResumeLayout(false);
             this.groupHorario.PerformLayout();
+            this.Configuración.ResumeLayout(false);
+            this.Configuración.PerformLayout();
+            this.groupBoxDom.ResumeLayout(false);
             this.barra_estado.ResumeLayout(false);
             this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -541,6 +734,23 @@
         private System.Windows.Forms.Label lblFadeContainer;
         private System.Windows.Forms.Label lblMsgContainer;
         private System.Windows.Forms.Label lblPubliContainer;
+        private System.Windows.Forms.GroupBox groupBoxDom;
+        private System.Windows.Forms.Button btnAddDom;
+        private System.Windows.Forms.ComboBox domTienda;
+        private System.Windows.Forms.ComboBox domProv;
+        private System.Windows.Forms.ComboBox domRegion;
+        private System.Windows.Forms.ComboBox domPais;
+        private System.Windows.Forms.ComboBox domAlmacen;
+        private System.Windows.Forms.ComboBox domEntidad;
+        private System.Windows.Forms.Button btnBorrarDom;
+        private System.Windows.Forms.ListBox listBoxDom;
+        private System.Windows.Forms.Label lblProxy;
+        private System.Windows.Forms.Label lblServer;
+        private System.Windows.Forms.Button btnSendProxy;
+        private System.Windows.Forms.Button btnSendServer;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox txtServer;
+        private System.Windows.Forms.BindingSource bindingSource1;
     }
 }
 
