@@ -59,7 +59,15 @@
             this.lblDesde = new System.Windows.Forms.Label();
             this.timeDesde = new System.Windows.Forms.DateTimePicker();
             this.Configuración = new System.Windows.Forms.TabPage();
+            this.lblProxy = new System.Windows.Forms.Label();
+            this.lblServer = new System.Windows.Forms.Label();
+            this.btnSendProxy = new System.Windows.Forms.Button();
+            this.btnSendServer = new System.Windows.Forms.Button();
+            this.textProxy = new System.Windows.Forms.TextBox();
+            this.txtServer = new System.Windows.Forms.TextBox();
             this.groupBoxDom = new System.Windows.Forms.GroupBox();
+            this.btnBorrarDom = new System.Windows.Forms.Button();
+            this.listBoxDom = new System.Windows.Forms.ListBox();
             this.btnAddDom = new System.Windows.Forms.Button();
             this.domTienda = new System.Windows.Forms.ComboBox();
             this.domProv = new System.Windows.Forms.ComboBox();
@@ -77,15 +85,9 @@
             this.SalirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyBarIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
-            this.listBoxDom = new System.Windows.Forms.ListBox();
-            this.btnBorrarDom = new System.Windows.Forms.Button();
-            this.txtServer = new System.Windows.Forms.TextBox();
-            this.textBox1 = new System.Windows.Forms.TextBox();
             this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
-            this.btnSendServer = new System.Windows.Forms.Button();
-            this.btnSendProxy = new System.Windows.Forms.Button();
-            this.lblServer = new System.Windows.Forms.Label();
-            this.lblProxy = new System.Windows.Forms.Label();
+            this.errorServer = new System.Windows.Forms.ErrorProvider(this.components);
+            this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -100,6 +102,8 @@
             this.barra_estado.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorServer)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -413,7 +417,7 @@
             this.Configuración.Controls.Add(this.lblServer);
             this.Configuración.Controls.Add(this.btnSendProxy);
             this.Configuración.Controls.Add(this.btnSendServer);
-            this.Configuración.Controls.Add(this.textBox1);
+            this.Configuración.Controls.Add(this.textProxy);
             this.Configuración.Controls.Add(this.txtServer);
             this.Configuración.Controls.Add(this.groupBoxDom);
             this.Configuración.Location = new System.Drawing.Point(4, 22);
@@ -423,6 +427,63 @@
             this.Configuración.Text = "Configuración";
             this.Configuración.ToolTipText = "Configuración";
             this.Configuración.UseVisualStyleBackColor = true;
+            // 
+            // lblProxy
+            // 
+            this.lblProxy.AutoSize = true;
+            this.lblProxy.Location = new System.Drawing.Point(159, 375);
+            this.lblProxy.Name = "lblProxy";
+            this.lblProxy.Size = new System.Drawing.Size(78, 13);
+            this.lblProxy.TabIndex = 6;
+            this.lblProxy.Text = "URL del Proxy:";
+            // 
+            // lblServer
+            // 
+            this.lblServer.AutoSize = true;
+            this.lblServer.Location = new System.Drawing.Point(158, 334);
+            this.lblServer.Name = "lblServer";
+            this.lblServer.Size = new System.Drawing.Size(91, 13);
+            this.lblServer.TabIndex = 5;
+            this.lblServer.Text = "URL del Servidor:";
+            // 
+            // btnSendProxy
+            // 
+            this.btnSendProxy.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnSendProxy.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSendProxy.Location = new System.Drawing.Point(585, 367);
+            this.btnSendProxy.Name = "btnSendProxy";
+            this.btnSendProxy.Size = new System.Drawing.Size(75, 23);
+            this.btnSendProxy.TabIndex = 4;
+            this.btnSendProxy.Text = "Enviar";
+            this.btnSendProxy.UseVisualStyleBackColor = false;
+            this.btnSendProxy.Click += new System.EventHandler(this.btnSendProxy_Click);
+            // 
+            // btnSendServer
+            // 
+            this.btnSendServer.BackColor = System.Drawing.Color.RoyalBlue;
+            this.btnSendServer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnSendServer.Location = new System.Drawing.Point(585, 328);
+            this.btnSendServer.Name = "btnSendServer";
+            this.btnSendServer.Size = new System.Drawing.Size(75, 23);
+            this.btnSendServer.TabIndex = 3;
+            this.btnSendServer.Text = "Enviar";
+            this.btnSendServer.UseVisualStyleBackColor = false;
+            this.btnSendServer.Click += new System.EventHandler(this.btnSendServer_Click);
+            // 
+            // textProxy
+            // 
+            this.textProxy.Location = new System.Drawing.Point(255, 370);
+            this.textProxy.Name = "textProxy";
+            this.textProxy.Size = new System.Drawing.Size(300, 20);
+            this.textProxy.TabIndex = 2;
+            // 
+            // txtServer
+            // 
+            this.txtServer.Location = new System.Drawing.Point(255, 331);
+            this.txtServer.Name = "txtServer";
+            this.txtServer.Size = new System.Drawing.Size(300, 20);
+            this.txtServer.TabIndex = 1;
+            this.txtServer.Text = "http://dss.vidanio.com:8080";
             // 
             // groupBoxDom
             // 
@@ -441,6 +502,28 @@
             this.groupBoxDom.TabIndex = 0;
             this.groupBoxDom.TabStop = false;
             this.groupBoxDom.Text = "Configuración de Dominios";
+            // 
+            // btnBorrarDom
+            // 
+            this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
+            this.btnBorrarDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnBorrarDom.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnBorrarDom.Location = new System.Drawing.Point(233, 256);
+            this.btnBorrarDom.Name = "btnBorrarDom";
+            this.btnBorrarDom.Size = new System.Drawing.Size(121, 23);
+            this.btnBorrarDom.TabIndex = 8;
+            this.btnBorrarDom.Text = "Borrar";
+            this.btnBorrarDom.UseVisualStyleBackColor = false;
+            // 
+            // listBoxDom
+            // 
+            this.listBoxDom.FormattingEnabled = true;
+            this.listBoxDom.Items.AddRange(new object[] {
+            "Dinosol - Supersol - España - Andalucía - Málaga - C01223M"});
+            this.listBoxDom.Location = new System.Drawing.Point(54, 155);
+            this.listBoxDom.Name = "listBoxDom";
+            this.listBoxDom.Size = new System.Drawing.Size(468, 95);
+            this.listBoxDom.TabIndex = 7;
             // 
             // btnAddDom
             // 
@@ -503,6 +586,9 @@
             // domEntidad
             // 
             this.domEntidad.FormattingEnabled = true;
+            this.domEntidad.Items.AddRange(new object[] {
+            "Dinosol",
+            "Mercadona"});
             this.domEntidad.Location = new System.Drawing.Point(54, 37);
             this.domEntidad.Name = "domEntidad";
             this.domEntidad.Size = new System.Drawing.Size(121, 21);
@@ -578,82 +664,13 @@
             // 
             this.openMusicDirs.SelectedPath = "C:";
             // 
-            // listBoxDom
+            // errorServer
             // 
-            this.listBoxDom.FormattingEnabled = true;
-            this.listBoxDom.Items.AddRange(new object[] {
-            "Dinosol - Supersol - España - Andalucía - Málaga - C01223M"});
-            this.listBoxDom.Location = new System.Drawing.Point(54, 155);
-            this.listBoxDom.Name = "listBoxDom";
-            this.listBoxDom.Size = new System.Drawing.Size(468, 95);
-            this.listBoxDom.TabIndex = 7;
+            this.errorServer.ContainerControl = this;
             // 
-            // btnBorrarDom
+            // errorProxy
             // 
-            this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
-            this.btnBorrarDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnBorrarDom.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnBorrarDom.Location = new System.Drawing.Point(233, 256);
-            this.btnBorrarDom.Name = "btnBorrarDom";
-            this.btnBorrarDom.Size = new System.Drawing.Size(121, 23);
-            this.btnBorrarDom.TabIndex = 8;
-            this.btnBorrarDom.Text = "Borrar";
-            this.btnBorrarDom.UseVisualStyleBackColor = false;
-            // 
-            // txtServer
-            // 
-            this.txtServer.Location = new System.Drawing.Point(255, 331);
-            this.txtServer.Name = "txtServer";
-            this.txtServer.Size = new System.Drawing.Size(300, 20);
-            this.txtServer.TabIndex = 1;
-            this.txtServer.Text = "http:\\\\dss.vidanio.com:8080";
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(255, 370);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(300, 20);
-            this.textBox1.TabIndex = 2;
-            // 
-            // btnSendServer
-            // 
-            this.btnSendServer.BackColor = System.Drawing.Color.RoyalBlue;
-            this.btnSendServer.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSendServer.Location = new System.Drawing.Point(561, 329);
-            this.btnSendServer.Name = "btnSendServer";
-            this.btnSendServer.Size = new System.Drawing.Size(75, 23);
-            this.btnSendServer.TabIndex = 3;
-            this.btnSendServer.Text = "Enviar";
-            this.btnSendServer.UseVisualStyleBackColor = false;
-            // 
-            // btnSendProxy
-            // 
-            this.btnSendProxy.BackColor = System.Drawing.Color.RoyalBlue;
-            this.btnSendProxy.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnSendProxy.Location = new System.Drawing.Point(561, 368);
-            this.btnSendProxy.Name = "btnSendProxy";
-            this.btnSendProxy.Size = new System.Drawing.Size(75, 23);
-            this.btnSendProxy.TabIndex = 4;
-            this.btnSendProxy.Text = "Enviar";
-            this.btnSendProxy.UseVisualStyleBackColor = false;
-            // 
-            // lblServer
-            // 
-            this.lblServer.AutoSize = true;
-            this.lblServer.Location = new System.Drawing.Point(158, 334);
-            this.lblServer.Name = "lblServer";
-            this.lblServer.Size = new System.Drawing.Size(91, 13);
-            this.lblServer.TabIndex = 5;
-            this.lblServer.Text = "URL del Servidor:";
-            // 
-            // lblProxy
-            // 
-            this.lblProxy.AutoSize = true;
-            this.lblProxy.Location = new System.Drawing.Point(159, 375);
-            this.lblProxy.Name = "lblProxy";
-            this.lblProxy.Size = new System.Drawing.Size(78, 13);
-            this.lblProxy.TabIndex = 6;
-            this.lblProxy.Text = "URL del Proxy:";
+            this.errorProxy.ContainerControl = this;
             // 
             // Inicio
             // 
@@ -688,6 +705,8 @@
             this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorServer)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -748,9 +767,11 @@
         private System.Windows.Forms.Label lblServer;
         private System.Windows.Forms.Button btnSendProxy;
         private System.Windows.Forms.Button btnSendServer;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textProxy;
         private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.BindingSource bindingSource1;
+        private System.Windows.Forms.ErrorProvider errorServer;
+        private System.Windows.Forms.ErrorProvider errorProxy;
     }
 }
 

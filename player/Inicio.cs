@@ -117,6 +117,33 @@ namespace player
                 trackBarFade.Value = max;
             }
         }
-        
+
+        private void btnSendServer_Click(object sender, EventArgs e)
+        {
+            if ((txtServer.Text.Contains("http://") == false) && (txtServer.Text.Contains("https://") == false))
+            {
+                errorServer.SetError(txtServer, "URL no válida");
+            }
+            else
+            {
+                errorServer.SetError(txtServer, null);
+            }
+        }
+
+        private void btnSendProxy_Click(object sender, EventArgs e)
+        {
+            if ((textProxy.Text.Contains("http://") == false) && (textProxy.Text.Contains("https://") == false))
+            {
+                errorProxy.SetError(textProxy, "URL no válida");
+            }
+            else
+            {
+                errorProxy.SetError(textProxy, null);
+            }
+            if (textProxy.Text == "")
+            {
+                errorProxy.SetError(textProxy, null);
+            }
+        }
     }
 }
