@@ -6,18 +6,24 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using System.Windows.Forms;
+using System.Net;
 
 namespace player
 {
     public partial class Inicio : Form
     {
         //Evalua la salida del programa
-        private bool st_salida = false; 
+        private bool st_salida = false;
+        private Object obj = new Object(); // para bloqueo
+        private Shared shd = new Shared();
+        private int counter;
 
         public Inicio()
         {
             InitializeComponent();
+            wClient.Encoding = Encoding.UTF8; //UTF8
         }
         //Entrada en el campo de texto (msgIns)
         private void msgIns_Enter(object sender, EventArgs e)
@@ -144,6 +150,44 @@ namespace player
             {
                 errorProxy.SetError(textProxy, null);
             }
+        }
+
+        private void Inicio_Load(object sender, EventArgs e)
+        {
+                counter = 0;
+                Task.Factory.StartNew(hilo_status);
+                StatusTime.Start();
+        }
+        private void hilo_status()
+        {
+            SpinWait sw = new SpinWait(); // espera multiprocesador
+            while (true) // bucle infinito
+            {
+                lock (obj) counter++;
+                sw.SpinOnce(); // evita que el bucle infinito cuelgue el programa
+            }
+        }
+        private void StatusTime_Tick(object sender, EventArgs e)
+        {
+            //Estado de la Tienda
+            string estado = shd.estadoTienda(wClient);
+            if (estado == "1")
+            {
+                barStInfoServ.ForeColor = Color.Green;
+                barStInfoServ.Text = "Activada";
+            }
+            if (estado == "0")
+            {
+                barStInfoServ.ForeColor = Color.Red;
+                barStInfoServ.Text = "Desactivada";
+            }
+            //Recoger publicidad y mensajes
+            shd.recogerListado(wClient);
+            List<string> paco = shd.getPubli();
+            foreach (string p in paco)
+            {
+                listBoxDom.Items.Add(p);
+            } 
         }
     }
 }

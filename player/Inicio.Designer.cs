@@ -85,9 +85,10 @@
             this.SalirToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.notifyBarIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
-            this.bindingSource1 = new System.Windows.Forms.BindingSource(this.components);
             this.errorServer = new System.Windows.Forms.ErrorProvider(this.components);
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
+            this.wClient = new System.Net.WebClient();
+            this.StatusTime = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -101,7 +102,6 @@
             this.groupBoxDom.SuspendLayout();
             this.barra_estado.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).BeginInit();
             this.SuspendLayout();
@@ -611,8 +611,8 @@
             // 
             this.barStInfoServ.ForeColor = System.Drawing.Color.Green;
             this.barStInfoServ.Name = "barStInfoServ";
-            this.barStInfoServ.Size = new System.Drawing.Size(103, 17);
-            this.barStInfoServ.Text = "Estado Conectado";
+            this.barStInfoServ.Size = new System.Drawing.Size(42, 17);
+            this.barStInfoServ.Text = "Estado";
             // 
             // barStStatus
             // 
@@ -672,6 +672,21 @@
             // 
             this.errorProxy.ContainerControl = this;
             // 
+            // wClient
+            //
+            this.wClient.BaseAddress = "";
+            this.wClient.CachePolicy = null;
+            this.wClient.Credentials = null;
+            this.wClient.Encoding = ((System.Text.Encoding)(resources.GetObject("wClient.Encoding")));
+            this.wClient.Headers = ((System.Net.WebHeaderCollection)(resources.GetObject("wClient.Headers")));
+            this.wClient.QueryString = ((System.Collections.Specialized.NameValueCollection)(resources.GetObject("wClient.QueryString")));
+            this.wClient.UseDefaultCredentials = false;
+            // 
+            // StatusTime
+            // 
+            this.StatusTime.Interval = 3000;
+            this.StatusTime.Tick += new System.EventHandler(this.StatusTime_Tick);
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -686,6 +701,7 @@
             this.Name = "Inicio";
             this.Text = "HMPro";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Inicio_FormClosing);
+            this.Load += new System.EventHandler(this.Inicio_Load);
             this.tabControl1.ResumeLayout(false);
             this.Música.ResumeLayout(false);
             this.Música.PerformLayout();
@@ -704,7 +720,6 @@
             this.barra_estado.ResumeLayout(false);
             this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.bindingSource1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).EndInit();
             this.ResumeLayout(false);
@@ -769,9 +784,10 @@
         private System.Windows.Forms.Button btnSendServer;
         private System.Windows.Forms.TextBox textProxy;
         private System.Windows.Forms.TextBox txtServer;
-        private System.Windows.Forms.BindingSource bindingSource1;
         private System.Windows.Forms.ErrorProvider errorServer;
         private System.Windows.Forms.ErrorProvider errorProxy;
+        private System.Net.WebClient wClient;
+        private System.Windows.Forms.Timer StatusTime;
     }
 }
 
