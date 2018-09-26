@@ -183,11 +183,18 @@ namespace player
             }
             //Recoger publicidad y mensajes
             shd.recogerListado(wClient);
-            List<string> paco = shd.getPubli();
-            foreach (string p in paco)
+
+            List<string> publi = shd.getPubli();
+            foreach (string p in publi)
             {
                 listBoxDom.Items.Add(p);
-            } 
+            }
+
+            List<string> msg = shd.getMsg();
+            foreach (string m in msg)
+            {
+                listBoxDom.Items.Add(m);
+            }
         }
     }
 }
