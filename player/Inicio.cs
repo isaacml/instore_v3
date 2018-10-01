@@ -9,13 +9,13 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Windows.Forms;
 using System.Net;
+using System.IO;
 
 namespace player
 {
     public partial class Inicio : Form
     {
-        //Evalua la salida del programa
-        private bool st_salida = false;
+        private bool st_salida = false;  //Evalua la salida del programa
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private int counter;
@@ -181,7 +181,7 @@ namespace player
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
             }
-            //Recoger publicidad y mensajes
+            /*Recoger publicidad y mensajes
             shd.recogerListado(wClient);
 
             List<string> publi = shd.getPubli();
@@ -195,6 +195,8 @@ namespace player
             {
                 listBoxDom.Items.Add(m);
             }
+            */
+            shd.recogerListado(wClient);
         }
     }
 }
