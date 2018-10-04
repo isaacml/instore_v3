@@ -67,6 +67,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Combos.cs" />
     <Compile Include="Shared.cs" />
     <Compile Include="Inicio.cs">
       <SubType>Form</SubType>

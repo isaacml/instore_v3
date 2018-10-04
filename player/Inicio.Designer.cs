@@ -88,7 +88,8 @@
             this.errorServer = new System.Windows.Forms.ErrorProvider(this.components);
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
             this.wClient = new System.Net.WebClient();
-            this.StatusTime = new System.Windows.Forms.Timer(this.components);
+            this.timeEstado = new System.Windows.Forms.Timer(this.components);
+            this.timeListado = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -555,6 +556,7 @@
             this.domProv.Size = new System.Drawing.Size(121, 21);
             this.domProv.TabIndex = 4;
             this.domProv.Text = "<Provincia>";
+            this.domProv.SelectedIndexChanged += new System.EventHandler(this.domProv_SelectedIndexChanged);
             // 
             // domRegion
             // 
@@ -564,6 +566,7 @@
             this.domRegion.Size = new System.Drawing.Size(121, 21);
             this.domRegion.TabIndex = 3;
             this.domRegion.Text = "<Región>";
+            this.domRegion.SelectedIndexChanged += new System.EventHandler(this.domRegion_SelectedIndexChanged);
             // 
             // domPais
             // 
@@ -573,6 +576,7 @@
             this.domPais.Size = new System.Drawing.Size(121, 21);
             this.domPais.TabIndex = 2;
             this.domPais.Text = "<País>";
+            this.domPais.SelectedIndexChanged += new System.EventHandler(this.domPais_SelectedIndexChanged);
             // 
             // domAlmacen
             // 
@@ -582,18 +586,17 @@
             this.domAlmacen.Size = new System.Drawing.Size(121, 21);
             this.domAlmacen.TabIndex = 1;
             this.domAlmacen.Text = "<Almacen>";
+            this.domAlmacen.SelectedIndexChanged += new System.EventHandler(this.domAlmacen_SelectedIndexChanged);
             // 
             // domEntidad
             // 
             this.domEntidad.FormattingEnabled = true;
-            this.domEntidad.Items.AddRange(new object[] {
-            "Dinosol",
-            "Mercadona"});
             this.domEntidad.Location = new System.Drawing.Point(54, 37);
             this.domEntidad.Name = "domEntidad";
             this.domEntidad.Size = new System.Drawing.Size(121, 21);
             this.domEntidad.TabIndex = 0;
             this.domEntidad.Text = "<Entidad>";
+            this.domEntidad.SelectedIndexChanged += new System.EventHandler(this.domEntidad_SelectedIndexChanged);
             // 
             // barra_estado
             // 
@@ -673,7 +676,7 @@
             this.errorProxy.ContainerControl = this;
             // 
             // wClient
-            //
+            // 
             this.wClient.BaseAddress = "";
             this.wClient.CachePolicy = null;
             this.wClient.Credentials = null;
@@ -682,10 +685,13 @@
             this.wClient.QueryString = ((System.Collections.Specialized.NameValueCollection)(resources.GetObject("wClient.QueryString")));
             this.wClient.UseDefaultCredentials = false;
             // 
-            // StatusTime
+            // timeEstado
             // 
-            this.StatusTime.Interval = 3000;
-            this.StatusTime.Tick += new System.EventHandler(this.StatusTime_Tick);
+            this.timeEstado.Tick += new System.EventHandler(this.timeEstado_Tick);
+            // 
+            // timeListado
+            // 
+            this.timeListado.Tick += new System.EventHandler(this.timeListado_Tick);
             // 
             // Inicio
             // 
@@ -787,7 +793,8 @@
         private System.Windows.Forms.ErrorProvider errorServer;
         private System.Windows.Forms.ErrorProvider errorProxy;
         private System.Net.WebClient wClient;
-        private System.Windows.Forms.Timer StatusTime;
+        private System.Windows.Forms.Timer timeEstado;
+        private System.Windows.Forms.Timer timeListado;
     }
 }
 
