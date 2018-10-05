@@ -90,6 +90,7 @@
             this.wClient = new System.Net.WebClient();
             this.timeEstado = new System.Windows.Forms.Timer(this.components);
             this.timeListado = new System.Windows.Forms.Timer(this.components);
+            this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -105,6 +106,7 @@
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorAddDom)).BeginInit();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -509,21 +511,20 @@
             this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
             this.btnBorrarDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBorrarDom.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnBorrarDom.Location = new System.Drawing.Point(233, 256);
+            this.btnBorrarDom.Location = new System.Drawing.Point(233, 257);
             this.btnBorrarDom.Name = "btnBorrarDom";
             this.btnBorrarDom.Size = new System.Drawing.Size(121, 23);
             this.btnBorrarDom.TabIndex = 8;
             this.btnBorrarDom.Text = "Borrar";
             this.btnBorrarDom.UseVisualStyleBackColor = false;
+            this.btnBorrarDom.Click += new System.EventHandler(this.btnBorrarDom_Click);
             // 
             // listBoxDom
             // 
             this.listBoxDom.FormattingEnabled = true;
-            this.listBoxDom.Items.AddRange(new object[] {
-            "Dinosol - Supersol - España - Andalucía - Málaga - C01223M"});
-            this.listBoxDom.Location = new System.Drawing.Point(54, 155);
+            this.listBoxDom.Location = new System.Drawing.Point(6, 156);
             this.listBoxDom.Name = "listBoxDom";
-            this.listBoxDom.Size = new System.Drawing.Size(468, 95);
+            this.listBoxDom.Size = new System.Drawing.Size(553, 95);
             this.listBoxDom.TabIndex = 7;
             // 
             // btnAddDom
@@ -538,6 +539,7 @@
             this.btnAddDom.TabIndex = 6;
             this.btnAddDom.Text = "Añadir";
             this.btnAddDom.UseVisualStyleBackColor = false;
+            this.btnAddDom.Click += new System.EventHandler(this.btnAddDom_Click);
             // 
             // domTienda
             // 
@@ -693,6 +695,10 @@
             // 
             this.timeListado.Tick += new System.EventHandler(this.timeListado_Tick);
             // 
+            // errorAddDom
+            // 
+            this.errorAddDom.ContainerControl = this;
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -728,6 +734,7 @@
             this.contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.errorAddDom)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -795,6 +802,7 @@
         private System.Net.WebClient wClient;
         private System.Windows.Forms.Timer timeEstado;
         private System.Windows.Forms.Timer timeListado;
+        private System.Windows.Forms.ErrorProvider errorAddDom;
     }
 }
 

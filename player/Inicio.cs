@@ -373,9 +373,31 @@ namespace player
                     save_shop.Add(new Combos(tiendas[0], tiendas[1]));
                 }
             }
+
             domTienda.DataSource = save_shop;
             domTienda.DisplayMember = "Value";
             domTienda.ValueMember = "ID";
+        }
+        //Añadir Dominio (zona de configuracion)
+        private void btnAddDom_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string ent  = domEntidad.SelectedItem.ToString();
+                string alm  = ((Combos)domAlmacen.SelectedItem).Value;
+                string pais = ((Combos)domPais.SelectedItem).Value;
+                string reg  = ((Combos)domRegion.SelectedItem).Value;
+                string prov = ((Combos)domProv.SelectedItem).Value;
+                string shop = ((Combos)domTienda.SelectedItem).Value;
+                //Colocamos cada una de las organizaciones para formar el dominio
+                string dominio = string.Format("{0} - {1} - {2} - {3} - {4} - {5}", ent, alm, pais, reg, prov, shop);
+                listBoxDom.Items.Add(dominio);
+            }
+            catch
+            {
+                //Organizaciones nulas: no tienen valor
+                errorAddDom.SetError(btnAddDom, "Fail to Add: select all organizations");
+            }
         }
         //Mira la existencia de un fichero en una tabla (publi/msg): Devuelve TRUE (existe) o FALSE (no existe)
         private bool existFileInBD(string namefile, string table)
@@ -597,6 +619,10 @@ namespace player
                 str = str.Remove(str.LastIndexOf(trimStr));
             }
             return str;
+        }
+
+        private void btnBorrarDom_Click(object sender, EventArgs e)
+        {
         }
     }
 }
