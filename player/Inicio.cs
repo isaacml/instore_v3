@@ -158,6 +158,7 @@ namespace player
         private void Inicio_Load(object sender, EventArgs e)
         {
             showEntidad();
+            uploadDomains();
             //Task.Factory.StartNew(timeListado);
             //int wait5min = (5 * 60 * 1000); // 5 min
             timeEstado.Interval = 300000;
@@ -270,6 +271,7 @@ namespace player
         //Muestra la entidad (zona de configuración)
         private void showEntidad()
         {
+            errorAddDom.Clear();
             //Leemos fichero de configuración
             string[] readText = File.ReadAllLines("config.ini", Encoding.UTF8);
             foreach (string s in readText)
@@ -285,6 +287,7 @@ namespace player
         //Cambio de Entidad(combobox de configuracion)
         private void domEntidad_SelectedIndexChanged(object sender, EventArgs e)
         {
+            errorAddDom.Clear();
             BindingList<Combos> save_alm = new BindingList<Combos>();
             string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
             string[]alm = query.Split(';');
@@ -304,6 +307,7 @@ namespace player
         //Cambio de Almacen(combobox de configuracion)
         private void domAlmacen_SelectedIndexChanged(object sender, EventArgs e)
         {
+            errorAddDom.Clear();
             BindingList<Combos> save_pais = new BindingList<Combos>();
             string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
             string[] pais = query.Split(';');
@@ -323,6 +327,7 @@ namespace player
         //Cambio de Pais(combobox de configuracion)
         private void domPais_SelectedIndexChanged(object sender, EventArgs e)
         {
+            errorAddDom.Clear();
             BindingList<Combos> save_region = new BindingList<Combos>();
             string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
             string[] region = query.Split(';');
@@ -342,6 +347,7 @@ namespace player
         //Cambio de Region(combobox de configuracion)
         private void domRegion_SelectedIndexChanged(object sender, EventArgs e)
         {
+            errorAddDom.Clear();
             BindingList<Combos> save_prov = new BindingList<Combos>();
             string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
             string[] provincia = query.Split(';');
@@ -361,6 +367,7 @@ namespace player
         //Cambio de Provincia(combobox de configuracion)
         private void domProv_SelectedIndexChanged(object sender, EventArgs e)
         {
+            errorAddDom.Clear();
             BindingList<Combos> save_shop = new BindingList<Combos>();
             string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
             string[] tienda = query.Split(';');
@@ -391,12 +398,100 @@ namespace player
                 string shop = ((Combos)domTienda.SelectedItem).Value;
                 //Colocamos cada una de las organizaciones para formar el dominio
                 string dominio = string.Format("{0} - {1} - {2} - {3} - {4} - {5}", ent, alm, pais, reg, prov, shop);
-                listBoxDom.Items.Add(dominio);
+                //Se comprueba la existencia del dominio en la base de datos
+                bool existe = existDomainBD(dominio);
+                if (!existe)
+                {
+                    lock (obj)
+                    {
+                        //Se inserta en la BD
+                        using (connection = new SQLiteConnection(string_connection))
+                        {
+                            connection.Open();
+                            string query = string.Format(@"INSERT INTO dominios (dominio) VALUES ('{0}');", dominio);
+                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                            cmd_exc.ExecuteNonQuery();
+                            connection.Close();
+                        }
+                        //Se añade al listbox
+                        listBoxDom.Items.Add(dominio);
+                    }
+                }
+                else
+                {
+                    //El dominio ya existe
+                    errorAddDom.SetError(btnAddDom, "Fail to Add: this domain already exists");
+                }
             }
             catch
             {
                 //Organizaciones nulas: no tienen valor
                 errorAddDom.SetError(btnAddDom, "Fail to Add: select all organizations");
+            }
+        }
+        //Borrar Dominio (zona de configuracion)
+        private void btnBorrarDom_Click(object sender, EventArgs e)
+        {
+            lock (obj)
+            {
+                //borramos dominio de base de datos
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"DELETE FROM dominios WHERE dominio = '{0}'", listBoxDom.GetItemText(listBoxDom.SelectedItem));
+                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                    cmd_exc.ExecuteNonQuery();
+                    connection.Close();
+                }
+                //Borramos dominio del listado
+                listBoxDom.Items.RemoveAt(listBoxDom.SelectedIndex);
+            }
+        }
+        //Encargado de cargar los dominios de la BD en el listbox
+        private void uploadDomains()
+        {
+            lock (obj)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT dominio FROM dominios");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        // recogemos los datos
+                        string dom = datos.GetString(datos.GetOrdinal("dominio"));
+                        listBoxDom.Items.Add(dom);
+                    }
+                    connection.Close();
+                }
+            }
+        }
+        //Mira la existencia de un dominio en BD: Devuelve TRUE (existe) o FALSE (no existe)
+        private bool existDomainBD(string dom)
+        {
+            lock (obj)
+            {
+                bool existe = true;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT count(*) as cont FROM dominios WHERE dominio=('{0}');", dom);
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        // recogemos los datos
+                        int cont = datos.GetInt32(datos.GetOrdinal("cont"));
+                        if (cont == 0)
+                        {
+                            existe = false;
+                        }
+                    }
+                    connection.Close();
+                }
+                return existe;
             }
         }
         //Mira la existencia de un fichero en una tabla (publi/msg): Devuelve TRUE (existe) o FALSE (no existe)
@@ -441,8 +536,8 @@ namespace player
                     while (datos.Read())
                     {
                         //Recogemos los datos
-                        string f_ini_bd = datos.GetOrdinal("fecha_ini").ToString();
-                        string f_fin_bd = datos.GetOrdinal("fecha_fin").ToString();
+                        string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
+                        string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
                         int gap_bd = datos.GetInt32(datos.GetOrdinal("gap"));
                         //Comprobamos si los datos son distintos
                         if (f_ini_bd != f_ini || f_fin_bd != f_fin || gap_bd != Convert.ToInt32(gap))
@@ -471,9 +566,9 @@ namespace player
                     while (datos.Read())
                     {
                         //Recogemos los datos
-                        string f_ini_bd = datos.GetOrdinal("fecha_ini").ToString();
-                        string f_fin_bd = datos.GetOrdinal("fecha_fin").ToString();
-                        string playtime_bd = datos.GetOrdinal("playtime").ToString();
+                        string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
+                        string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
+                        string playtime_bd = datos.GetString(datos.GetOrdinal("playtime"));
                         //Comprobamos si los datos son distintos
                         if (f_ini_bd != f_ini || f_fin_bd != f_fin || playtime != playtime_bd)
                         {
@@ -610,7 +705,7 @@ namespace player
             }
         }
         //Borrar de una cadena un patrón específico
-        public string borrarString(string str, string trimStr)
+        private string borrarString(string str, string trimStr)
         {
             if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(trimStr)) return str;
 
@@ -619,10 +714,6 @@ namespace player
                 str = str.Remove(str.LastIndexOf(trimStr));
             }
             return str;
-        }
-
-        private void btnBorrarDom_Click(object sender, EventArgs e)
-        {
         }
     }
 }
