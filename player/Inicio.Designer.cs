@@ -87,7 +87,6 @@
             this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
             this.errorServer = new System.Windows.Forms.ErrorProvider(this.components);
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
-            this.wClient = new System.Net.WebClient();
             this.timeEstado = new System.Windows.Forms.Timer(this.components);
             this.timeListado = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
@@ -677,16 +676,6 @@
             // 
             this.errorProxy.ContainerControl = this;
             // 
-            // wClient
-            // 
-            this.wClient.BaseAddress = "";
-            this.wClient.CachePolicy = null;
-            this.wClient.Credentials = null;
-            this.wClient.Encoding = ((System.Text.Encoding)(resources.GetObject("wClient.Encoding")));
-            this.wClient.Headers = ((System.Net.WebHeaderCollection)(resources.GetObject("wClient.Headers")));
-            this.wClient.QueryString = ((System.Collections.Specialized.NameValueCollection)(resources.GetObject("wClient.QueryString")));
-            this.wClient.UseDefaultCredentials = false;
-            // 
             // timeEstado
             // 
             this.timeEstado.Tick += new System.EventHandler(this.timeEstado_Tick);
@@ -799,7 +788,6 @@
         private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.ErrorProvider errorServer;
         private System.Windows.Forms.ErrorProvider errorProxy;
-        private System.Net.WebClient wClient;
         private System.Windows.Forms.Timer timeEstado;
         private System.Windows.Forms.Timer timeListado;
         private System.Windows.Forms.ErrorProvider errorAddDom;

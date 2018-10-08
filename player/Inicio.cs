@@ -12,6 +12,7 @@ using System.Web;
 using System.Text.RegularExpressions;
 using System.Data.SQLite;
 using System.IO;
+using System.Net;
 
 namespace player
 {
@@ -26,7 +27,6 @@ namespace player
         public Inicio()
         {
             InitializeComponent();
-            wClient.Encoding = Encoding.UTF8; //UTF8
         }
         //Entrada en el campo de texto (msgIns)
         private void msgIns_Enter(object sender, EventArgs e)
@@ -129,31 +129,120 @@ namespace player
 
         private void btnSendServer_Click(object sender, EventArgs e)
         {
-            if ((txtServer.Text.Contains("http://") == false) && (txtServer.Text.Contains("https://") == false))
+            if ((!txtServer.Text.Contains("http://")) && (!txtServer.Text.Contains("https://")))
             {
                 errorServer.SetError(txtServer, "URL no válida");
             }
             else
             {
                 errorServer.SetError(txtServer, null);
+                saveConnectionInBD("server", txtServer.Text);
             }
         }
 
         private void btnSendProxy_Click(object sender, EventArgs e)
         {
-            if ((textProxy.Text.Contains("http://") == false) && (textProxy.Text.Contains("https://") == false))
+            errorProxy.Clear();
+            if (textProxy.Text == "")
             {
-                errorProxy.SetError(textProxy, "URL no válida");
+                saveConnectionInBD("proxy", textProxy.Text);
             }
             else
             {
-                errorProxy.SetError(textProxy, null);
-            }
-            if (textProxy.Text == "")
-            {
-                errorProxy.SetError(textProxy, null);
+                if ((!textProxy.Text.Contains("http://")) && (!textProxy.Text.Contains("https://")))
+                {
+                    errorProxy.SetError(textProxy, "URL no válida");
+                }
+                else
+                {
+                    saveConnectionInBD("proxy", textProxy.Text);
+                }
             }
         }
+        private void saveConnectionInBD(string columna, string valor)
+        {
+            lock (obj)
+            {
+                bool existe = true;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT count(*) as cont FROM conection");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //igual a zero: no existe
+                        int cont = datos.GetInt32(datos.GetOrdinal("cont"));
+                        if (cont == 0)
+                        {
+                            existe = false;
+                        }
+                    }
+                    connection.Close();
+                }
+                //Evaluamos la existencia
+                if (!existe)
+                {
+                    //No existe: lo insertamos
+                    using (connection = new SQLiteConnection(string_connection))
+                    {
+                        connection.Open();
+                        string query = string.Format(@"INSERT INTO conection ({0}) VALUES ('{1}');", columna, valor);
+                        SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                        cmd_exc.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                }
+                else
+                {
+                    //Existe: modificamos los datos de conexión
+                    using (connection = new SQLiteConnection(string_connection))
+                    {
+                        connection.Open();
+                        string query = string.Format(@"UPDATE conection SET {0}='{1}'", columna, valor);
+                        SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                        cmd_exc.ExecuteNonQuery();
+                        connection.Close();
+                    }
+                }
+            }
+        }
+        private string urlConnection(string url)
+        {
+            lock (obj)
+            {
+                WebClient wCli = new WebClient();
+                wCli.Encoding = Encoding.UTF8; //UTF8
+                string output = "";
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT server, proxy FROM conection");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //igual a zero: no existe
+                        string server = datos.GetString(datos.GetOrdinal("server"));
+                        string proxy = datos.GetString(datos.GetOrdinal("proxy"));
+                        if (proxy == "")
+                        {
+                            output = wCli.DownloadString(url);
+                        }
+                        else
+                        {
+                            WebProxy pxy = new WebProxy(proxy);
+                            wCli.Proxy = pxy;
+                            output = wCli.DownloadString(url);
+                        }
+                    }
+                    connection.Close();
+                }
+                return output;
+            }
+        }
+
         //LOAD: CARGA DE INICIO 
         private void Inicio_Load(object sender, EventArgs e)
         {
@@ -170,7 +259,7 @@ namespace player
         private void timeEstado_Tick(object sender, EventArgs e)
         {
             listBoxDom.Items.Add("Ejecutado ESTADO");
-            shd.Status = wClient.DownloadString("http://192.168.0.102:8080/acciones.cgi?action=check_entidad&ent=Acciona");
+            shd.Status = urlConnection("http://192.168.0.102:8080/acciones.cgi?action=check_entidad&ent=Acciona");
             //Estado de la Tienda
             if (shd.Status == "1")
             {
@@ -187,7 +276,7 @@ namespace player
         private void timeListado_Tick(object sender, EventArgs e)
         {
             listBoxDom.Items.Add("Ejecutado LISTADO");
-            string res = wClient.DownloadString(HttpUtility.UrlPathEncode("http://192.168.0.102:8080/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
+            string res = urlConnection(HttpUtility.UrlPathEncode("http://192.168.0.102:8080/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
             string[] lista = Regex.Split(res, @"\[publi];");
             string output;
 
@@ -280,7 +369,7 @@ namespace player
                 //Mostramos el nombre de entidad
                 domEntidad.Items.Add(dat_ent[1]);
                 //Guardamos el id de entidad
-                string id = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=entidad&nom_ent=" + dat_ent[1]);
+                string id = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=entidad&nom_ent=" + dat_ent[1]);
                 shd.IDEntidad = id;
             }
         }
@@ -289,7 +378,7 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_alm = new BindingList<Combos>();
-            string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
+            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
             string[]alm = query.Split(';');
             foreach (string alms in alm)
             {
@@ -309,7 +398,7 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_pais = new BindingList<Combos>();
-            string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
+            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
             string[] pais = query.Split(';');
             foreach (string p in pais)
             {
@@ -329,7 +418,7 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_region = new BindingList<Combos>();
-            string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
+            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
             string[] region = query.Split(';');
             foreach (string r in region)
             {
@@ -349,7 +438,7 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_prov = new BindingList<Combos>();
-            string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
+            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
             string[] provincia = query.Split(';');
             foreach (string p in provincia)
             {
@@ -369,7 +458,7 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_shop = new BindingList<Combos>();
-            string query = wClient.DownloadString(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
+            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
             string[] tienda = query.Split(';');
             foreach (string s in tienda)
             {
