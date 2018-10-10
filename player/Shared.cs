@@ -13,7 +13,8 @@ namespace player
         private List<string> publi;
         private List<string> msg;
         private string estado;
-        private string entidad;
+        private string id_entidad;
+        private string nom_entidad;
         private Object bloqueo = new Object();
 
         public Shared()
@@ -47,14 +48,32 @@ namespace player
             {
                 lock (bloqueo)
                 {
-                    return entidad;
+                    return id_entidad;
                 }
             }
             set
             {
                 lock (bloqueo)
                 {
-                    entidad = value;
+                    id_entidad = value;
+                }
+            }
+        }
+        //Guarda el nombre de entidad
+        public string Entidad
+        {
+            get
+            {
+                lock (bloqueo)
+                {
+                    return nom_entidad;
+                }
+            }
+            set
+            {
+                lock (bloqueo)
+                {
+                    nom_entidad = value;
                 }
             }
         }

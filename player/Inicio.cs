@@ -19,10 +19,12 @@ namespace player
     public partial class Inicio : Form
     {
         SQLiteConnection connection;
-        private bool st_salida = false;  //Evalua la salida del programa
+        private string string_connection = @"Data Source=shop.db; Version=3;";
+        private string file_config = "config.ini";
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
-        private string string_connection = @"Data Source=shop.db; Version=3;";
+        private Connect con = new Connect();
+        private bool st_salida = false;  //Evalua la salida del programa
 
         public Inicio()
         {
@@ -126,7 +128,7 @@ namespace player
                 trackBarFade.Value = max;
             }
         }
-
+        
         private void btnSendServer_Click(object sender, EventArgs e)
         {
             if ((!txtServer.Text.Contains("http://")) && (!txtServer.Text.Contains("https://")))
@@ -136,7 +138,7 @@ namespace player
             else
             {
                 errorServer.SetError(txtServer, null);
-                saveConnectionInBD("server", txtServer.Text);
+                con.SaveConnection("server", txtServer.Text);
             }
         }
 
@@ -145,7 +147,7 @@ namespace player
             errorProxy.Clear();
             if (textProxy.Text == "")
             {
-                saveConnectionInBD("proxy", textProxy.Text);
+                con.SaveConnection("proxy", textProxy.Text);
             }
             else
             {
@@ -155,92 +157,49 @@ namespace player
                 }
                 else
                 {
-                    saveConnectionInBD("proxy", textProxy.Text);
+                    con.SaveConnection("proxy", textProxy.Text);
                 }
             }
         }
-        private void saveConnectionInBD(string columna, string valor)
+
+        /*Evalua que tipo de conexión se va a usar
+        Ejecuta el cgi y nos devuelve un query string*/
+        private string serverConnection(string cgi)
         {
-            lock (obj)
+            string output = "";
+            WebClient wCli = new WebClient();
+            WebProxy wProxy = new WebProxy();
+            wCli.Encoding = Encoding.UTF8; //UTF8
+
+            //TRUE: Usamos el Proxy
+            if (con.UseProxy())
             {
-                bool existe = true;
-                using (connection = new SQLiteConnection(string_connection))
+                try
                 {
-                    connection.Open();
-                    string query = string.Format(@"SELECT count(*) as cont FROM conection");
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //igual a zero: no existe
-                        int cont = datos.GetInt32(datos.GetOrdinal("cont"));
-                        if (cont == 0)
-                        {
-                            existe = false;
-                        }
-                    }
-                    connection.Close();
+                    wProxy.Address = new Uri(con.LoadProxy());
+                    wCli.Proxy = wProxy;
+                    output = wCli.DownloadString(con.LoadServer() + cgi);
+                    errorProxy.SetError(textProxy, "");
                 }
-                //Evaluamos la existencia
-                if (!existe)
+                catch
                 {
-                    //No existe: lo insertamos
-                    using (connection = new SQLiteConnection(string_connection))
-                    {
-                        connection.Open();
-                        string query = string.Format(@"INSERT INTO conection ({0}) VALUES ('{1}');", columna, valor);
-                        SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                        cmd_exc.ExecuteNonQuery();
-                        connection.Close();
-                    }
-                }
-                else
-                {
-                    //Existe: modificamos los datos de conexión
-                    using (connection = new SQLiteConnection(string_connection))
-                    {
-                        connection.Open();
-                        string query = string.Format(@"UPDATE conection SET {0}='{1}'", columna, valor);
-                        SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                        cmd_exc.ExecuteNonQuery();
-                        connection.Close();
-                    }
+                    errorProxy.SetError(textProxy, "Proxy Incorrecto");
                 }
             }
-        }
-        private string urlConnection(string url)
-        {
-            lock (obj)
+            //FALSE: Usamos el Servidor
+            else
             {
-                WebClient wCli = new WebClient();
-                wCli.Encoding = Encoding.UTF8; //UTF8
-                string output = "";
-                using (connection = new SQLiteConnection(string_connection))
+                try
                 {
-                    connection.Open();
-                    string query = string.Format(@"SELECT server, proxy FROM conection");
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //igual a zero: no existe
-                        string server = datos.GetString(datos.GetOrdinal("server"));
-                        string proxy = datos.GetString(datos.GetOrdinal("proxy"));
-                        if (proxy == "")
-                        {
-                            output = wCli.DownloadString(url);
-                        }
-                        else
-                        {
-                            WebProxy pxy = new WebProxy(proxy);
-                            wCli.Proxy = pxy;
-                            output = wCli.DownloadString(url);
-                        }
-                    }
-                    connection.Close();
+                    output = wCli.DownloadString(con.LoadServer() + cgi);
+                    errorServer.SetError(txtServer, "");
                 }
-                return output;
+                catch
+                {
+                    errorServer.SetError(txtServer, "Server Incorrecto");
+                }
             }
+            return output;
         }
 
         //LOAD: CARGA DE INICIO 
@@ -248,25 +207,28 @@ namespace player
         {
             showEntidad();
             uploadDomains();
+            txtServer.Text = con.LoadServer();
+            textProxy.Text = con.LoadProxy();
             //Task.Factory.StartNew(timeListado);
             //int wait5min = (5 * 60 * 1000); // 5 min
-            timeEstado.Interval = 300000;
+            /*timeEstado.Interval = 300000;
             timeEstado.Start();
             timeListado.Interval = 190000;
             timeListado.Start();
+            */
 
-        }
+        }/*
         private void timeEstado_Tick(object sender, EventArgs e)
         {
             listBoxDom.Items.Add("Ejecutado ESTADO");
-            shd.Status = urlConnection("http://192.168.0.102:8080/acciones.cgi?action=check_entidad&ent=Acciona");
+            shd.Status = con.serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
             //Estado de la Tienda
             if (shd.Status == "1")
             {
                 barStInfoServ.ForeColor = Color.Green;
                 barStInfoServ.Text = "Activada";
             }
-            if (shd.Status == "0")
+            if (shd.Status == "0" || shd.Status == "")
             {
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
@@ -276,7 +238,7 @@ namespace player
         private void timeListado_Tick(object sender, EventArgs e)
         {
             listBoxDom.Items.Add("Ejecutado LISTADO");
-            string res = urlConnection(HttpUtility.UrlPathEncode("http://192.168.0.102:8080/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
+            string res = con.serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
             string[] lista = Regex.Split(res, @"\[publi];");
             string output;
 
@@ -357,37 +319,51 @@ namespace player
                 }
             }
         }
+        */
         //Muestra la entidad (zona de configuración)
         private void showEntidad()
         {
             errorAddDom.Clear();
+            BindingList<Combos> save_ent = new BindingList<Combos>();
             //Leemos fichero de configuración
-            string[] readText = File.ReadAllLines("config.ini", Encoding.UTF8);
+            string[] readText = File.ReadAllLines(file_config, Encoding.UTF8);
             foreach (string s in readText)
             {
                 string[] dat_ent = s.Split('=');
-                //Mostramos el nombre de entidad
-                domEntidad.Items.Add(dat_ent[1]);
+                //Se guarda el nombre de entidad en el obj
+                shd.Entidad = dat_ent[1];
                 //Guardamos el id de entidad
-                string id = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=entidad&nom_ent=" + dat_ent[1]);
+                string id = serverConnection(@"/transf_orgs_vs.cgi?action=entidad&nom_ent=" + shd.Entidad);
                 shd.IDEntidad = id;
+                save_ent.Add(new Combos(shd.IDEntidad, shd.Entidad));
             }
+            domEntidad.DataSource = save_ent;
+            domEntidad.DisplayMember = "Value";
+            domEntidad.ValueMember = "ID";
         }
         //Cambio de Entidad(combobox de configuracion)
         private void domEntidad_SelectedIndexChanged(object sender, EventArgs e)
         {
             errorAddDom.Clear();
+            showEntidad();
             BindingList<Combos> save_alm = new BindingList<Combos>();
-            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
-            string[]alm = query.Split(';');
-            foreach (string alms in alm)
+            string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
+            if (query != "")
             {
-                if (alms != "")
+                string[] alm = query.Split(';');
+                foreach (string alms in alm)
                 {
-                    //Separamos los distintos almacenes
-                    string[] almacenes = Regex.Split(alms, @"\<=>");
-                    save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                    if (alms != "")
+                    {
+                        //Separamos los distintos almacenes
+                        string[] almacenes = Regex.Split(alms, @"\<=>");
+                        save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                    }
                 }
+            }
+            else
+            {
+                save_alm.Add(new Combos("", ""));
             }
             domAlmacen.DataSource = save_alm;
             domAlmacen.DisplayMember = "Value";
@@ -398,16 +374,23 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_pais = new BindingList<Combos>();
-            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
-            string[] pais = query.Split(';');
-            foreach (string p in pais)
+            string query = serverConnection(@"/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
+            if (query != "")
             {
-                if (p != "")
+                string[] pais = query.Split(';');
+                foreach (string p in pais)
                 {
-                    //Separamos los distintos paises
-                    string[] paises = Regex.Split(p, @"\<=>");
-                    save_pais.Add(new Combos(paises[0], paises[1]));
+                    if (p != "")
+                    {
+                        //Separamos los distintos paises
+                        string[] paises = Regex.Split(p, @"\<=>");
+                        save_pais.Add(new Combos(paises[0], paises[1]));
+                    }
                 }
+            }
+            else
+            {
+                save_pais.Add(new Combos("", ""));
             }
             domPais.DataSource = save_pais;
             domPais.DisplayMember = "Value";
@@ -418,16 +401,23 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_region = new BindingList<Combos>();
-            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
-            string[] region = query.Split(';');
-            foreach (string r in region)
+            string query = serverConnection(@"/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
+            if (query != "")
             {
-                if (r != "")
+                string[] region = query.Split(';');
+                foreach (string r in region)
                 {
-                    //Separamos las distintas regiones
-                    string[] regiones = Regex.Split(r, @"\<=>");
-                    save_region.Add(new Combos(regiones[0], regiones[1]));
+                    if (r != "")
+                    {
+                        //Separamos las distintas regiones
+                        string[] regiones = Regex.Split(r, @"\<=>");
+                        save_region.Add(new Combos(regiones[0], regiones[1]));
+                    }
                 }
+            }
+            else
+            {
+                save_region.Add(new Combos("", ""));
             }
             domRegion.DataSource = save_region;
             domRegion.DisplayMember = "Value";
@@ -438,16 +428,22 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_prov = new BindingList<Combos>();
-            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
-            string[] provincia = query.Split(';');
-            foreach (string p in provincia)
+            string query = serverConnection(@"/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
+            if (query != "")
             {
-                if (p != "")
+                string[] provincia = query.Split(';');
+                foreach (string p in provincia)
                 {
-                    //Separamos las distintas provincias
-                    string[] provincias = Regex.Split(p, @"\<=>");
-                    save_prov.Add(new Combos(provincias[0], provincias[1]));
+                    if (p != "")
+                    {
+                        //Separamos las distintas provincias
+                        string[] provincias = Regex.Split(p, @"\<=>");
+                        save_prov.Add(new Combos(provincias[0], provincias[1]));
+                    }
                 }
+            }
+            else {
+                save_prov.Add(new Combos("", ""));
             }
             domProv.DataSource = save_prov;
             domProv.DisplayMember = "Value";
@@ -458,18 +454,24 @@ namespace player
         {
             errorAddDom.Clear();
             BindingList<Combos> save_shop = new BindingList<Combos>();
-            string query = urlConnection(@"http://192.168.0.102:8080/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
-            string[] tienda = query.Split(';');
-            foreach (string s in tienda)
+            string query = serverConnection(@"/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
+            if (query != "")
             {
-                if (s != "")
+                string[] tienda = query.Split(';');
+                foreach (string s in tienda)
                 {
-                    //Separamos las distintas tiendas
-                    string[] tiendas = Regex.Split(s, @"\<=>");
-                    save_shop.Add(new Combos(tiendas[0], tiendas[1]));
+                    if (s != "")
+                    {
+                        //Separamos las distintas tiendas
+                        string[] tiendas = Regex.Split(s, @"\<=>");
+                        save_shop.Add(new Combos(tiendas[0], tiendas[1]));
+                    }
                 }
             }
-
+            else
+            {
+                save_shop.Add(new Combos("", ""));
+            }
             domTienda.DataSource = save_shop;
             domTienda.DisplayMember = "Value";
             domTienda.ValueMember = "ID";
@@ -479,7 +481,7 @@ namespace player
         {
             try
             {
-                string ent  = domEntidad.SelectedItem.ToString();
+                string ent  = ((Combos)domEntidad.SelectedItem).Value;
                 string alm  = ((Combos)domAlmacen.SelectedItem).Value;
                 string pais = ((Combos)domPais.SelectedItem).Value;
                 string reg  = ((Combos)domRegion.SelectedItem).Value;
@@ -509,13 +511,13 @@ namespace player
                 else
                 {
                     //El dominio ya existe
-                    errorAddDom.SetError(btnAddDom, "Fail to Add: this domain already exists");
+                    errorAddDom.SetError(btnAddDom, "Ese dominio ya existe");
                 }
             }
             catch
             {
                 //Organizaciones nulas: no tienen valor
-                errorAddDom.SetError(btnAddDom, "Fail to Add: select all organizations");
+                errorAddDom.SetError(btnAddDom, "Selecciona todas las organizaciones");
             }
         }
         //Borrar Dominio (zona de configuracion)

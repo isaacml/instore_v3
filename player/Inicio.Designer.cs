@@ -678,11 +678,11 @@
             // 
             // timeEstado
             // 
-            this.timeEstado.Tick += new System.EventHandler(this.timeEstado_Tick);
+            //this.timeEstado.Tick += new System.EventHandler(this.timeEstado_Tick);
             // 
             // timeListado
             // 
-            this.timeListado.Tick += new System.EventHandler(this.timeListado_Tick);
+            //this.timeListado.Tick += new System.EventHandler(this.timeListado_Tick);
             // 
             // errorAddDom
             // 
