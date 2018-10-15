@@ -12,6 +12,7 @@ namespace player
     {
         private List<string> publi;
         private List<string> msg;
+        private List<string> musica;
         private string estado;
         private string id_entidad;
         private string nom_entidad;
@@ -21,6 +22,7 @@ namespace player
         {
             publi = new List<string>();
             msg = new List<string>();
+            musica = new List<string>();
         }
     
         //Estado de la tienda
@@ -41,7 +43,7 @@ namespace player
                 }
             }
         }
-        //Guarda el identificador de la entidad
+        //Identificador de la entidad
         public string IDEntidad
         {
             get
@@ -59,7 +61,7 @@ namespace player
                 }
             }
         }
-        //Guarda el nombre de entidad
+        //Nombre de entidad
         public string Entidad
         {
             get
@@ -74,6 +76,24 @@ namespace player
                 lock (bloqueo)
                 {
                     nom_entidad = value;
+                }
+            }
+        }
+        //Listado de Musica
+        public List<string> Music
+        {
+            get
+            {
+                lock (bloqueo)
+                {
+                    return musica;
+                }
+            }
+            set
+            {
+                lock (bloqueo)
+                {
+                    musica = value;
                 }
             }
         }

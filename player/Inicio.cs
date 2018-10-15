@@ -38,13 +38,36 @@ namespace player
                 msgIns.Text = openMsgInst.FileName;
             }
         }
-        private void musicDirs_Enter(object sender, EventArgs e)
+        //Explorador de directorios de música
+        private void musicDirs_Click(object sender, EventArgs e)
         {
             if (openMusicDirs.ShowDialog() == DialogResult.OK)
             {
-                musicDirs.Text = openMusicDirs.SelectedPath;
+                listMusicDirs.Items.Clear();
+                //Tomamos el nombre del directorio 
+                string directorio = openMusicDirs.SelectedPath;
+                //Mostramos directorio
+                musicDirs.Text = directorio;
+                //Buscamos y guardamos los subdirectorios
+                string[] dirs = Directory.GetDirectories(directorio)
+                                         .Select(Path.GetFileName)
+                                         .ToArray();
+                //Añadimos al listado de subdirectorios
+                listMusicDirs.Items.AddRange(dirs);
             }
         }
+        //Guarda en un listado los ficheros de las carpetas marcadas
+        private void listMusicDirs_SelectedValueChanged(object sender, EventArgs e)
+        {
+            shd.Music.Clear();
+            foreach (string sub in listMusicDirs.CheckedItems)
+            {
+                shd.Music.AddRange(Directory.GetFiles(musicDirs.Text + @"\" + sub, "*.mp3")
+                         .Select(Path.GetFileName)
+                         .ToArray());
+            }
+        }
+
         //Cierre de la ventana principal del programa
         private void Inicio_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -209,19 +232,14 @@ namespace player
             uploadDomains();
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
-            //Task.Factory.StartNew(timeListado);
-            //int wait5min = (5 * 60 * 1000); // 5 min
-            /*timeEstado.Interval = 300000;
-            timeEstado.Start();
-            timeListado.Interval = 190000;
-            timeListado.Start();
-            */
 
-        }/*
-        private void timeEstado_Tick(object sender, EventArgs e)
+            int wait5min = (5 * 60 * 1000); // 5 min
+            Timer5MIN.Interval = wait5min;
+            Timer5MIN.Start();
+        }
+        private void Timer5MIN_Tick(object sender, EventArgs e)
         {
-            listBoxDom.Items.Add("Ejecutado ESTADO");
-            shd.Status = con.serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
+            shd.Status = serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
             //Estado de la Tienda
             if (shd.Status == "1")
             {
@@ -233,12 +251,12 @@ namespace player
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
             }
+            getListado(); //Recogemos el listado de publi/msg
         }
-
-        private void timeListado_Tick(object sender, EventArgs e)
+        //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
+        private void getListado()
         {
-            listBoxDom.Items.Add("Ejecutado LISTADO");
-            string res = con.serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
+            string res = serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
             string[] lista = Regex.Split(res, @"\[publi];");
             string output;
 
@@ -319,7 +337,6 @@ namespace player
                 }
             }
         }
-        */
         //Muestra la entidad (zona de configuración)
         private void showEntidad()
         {

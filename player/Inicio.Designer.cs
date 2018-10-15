@@ -87,8 +87,7 @@
             this.openMusicDirs = new System.Windows.Forms.FolderBrowserDialog();
             this.errorServer = new System.Windows.Forms.ErrorProvider(this.components);
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
-            this.timeEstado = new System.Windows.Forms.Timer(this.components);
-            this.timeListado = new System.Windows.Forms.Timer(this.components);
+            this.Timer5MIN = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
@@ -150,16 +149,11 @@
             // listMusicDirs
             // 
             this.listMusicDirs.FormattingEnabled = true;
-            this.listMusicDirs.Items.AddRange(new object[] {
-            "Jazz",
-            "Regeton",
-            "Rock",
-            "Dance",
-            "Hip Hop"});
             this.listMusicDirs.Location = new System.Drawing.Point(210, 136);
             this.listMusicDirs.Name = "listMusicDirs";
             this.listMusicDirs.Size = new System.Drawing.Size(343, 184);
             this.listMusicDirs.TabIndex = 4;
+            this.listMusicDirs.SelectedValueChanged += new System.EventHandler(this.listMusicDirs_SelectedValueChanged);
             // 
             // lblMusicDirs
             // 
@@ -174,10 +168,11 @@
             // 
             this.musicDirs.Location = new System.Drawing.Point(210, 69);
             this.musicDirs.Name = "musicDirs";
+            this.musicDirs.ReadOnly = true;
             this.musicDirs.Size = new System.Drawing.Size(262, 20);
             this.musicDirs.TabIndex = 2;
             this.musicDirs.Text = "C:";
-            this.musicDirs.Enter += new System.EventHandler(this.musicDirs_Enter);
+            this.musicDirs.Click += new System.EventHandler(this.musicDirs_Click);
             // 
             // lblMsgInst
             // 
@@ -676,13 +671,9 @@
             // 
             this.errorProxy.ContainerControl = this;
             // 
-            // timeEstado
+            // Timer5MIN
             // 
-            //this.timeEstado.Tick += new System.EventHandler(this.timeEstado_Tick);
-            // 
-            // timeListado
-            // 
-            //this.timeListado.Tick += new System.EventHandler(this.timeListado_Tick);
+            this.Timer5MIN.Tick += new System.EventHandler(this.Timer5MIN_Tick);
             // 
             // errorAddDom
             // 
@@ -788,8 +779,7 @@
         private System.Windows.Forms.TextBox txtServer;
         private System.Windows.Forms.ErrorProvider errorServer;
         private System.Windows.Forms.ErrorProvider errorProxy;
-        private System.Windows.Forms.Timer timeEstado;
-        private System.Windows.Forms.Timer timeListado;
+        private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
     }
 }
