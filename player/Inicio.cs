@@ -44,30 +44,41 @@ namespace player
             if (openMusicDirs.ShowDialog() == DialogResult.OK)
             {
                 listMusicDirs.Items.Clear();
+                shd.SubDirs.Clear();
                 //Tomamos el nombre del directorio 
                 string directorio = openMusicDirs.SelectedPath;
                 //Mostramos directorio
                 musicDirs.Text = directorio;
-                //Buscamos y guardamos los subdirectorios
-                string[] dirs = Directory.GetDirectories(directorio)
-                                         .Select(Path.GetFileName)
-                                         .ToArray();
-                //Añadimos al listado de subdirectorios
-                listMusicDirs.Items.AddRange(dirs);
+                //Comprobamos si los subdirectorios son accesibles
+                foreach (string d in Directory.GetDirectories(directorio))
+                {
+                    bool access = canAccess(d);
+                    if (access == true)
+                    {
+                        //Guardamos los subdirectorios
+                        shd.SubDirs.Add(d);
+                        //Añadimos al listado de subdirectorios
+                        DirectoryInfo dir = new DirectoryInfo(d);
+                        listMusicDirs.Items.Add(dir.Name);
+                    }
+                }
             }
         }
-        //Guarda en un listado los ficheros de las carpetas marcadas
+        //Guarda en un listado los ficheros MP3 de las carpetas marcadas
         private void listMusicDirs_SelectedValueChanged(object sender, EventArgs e)
         {
             shd.Music.Clear();
-            foreach (string sub in listMusicDirs.CheckedItems)
+            foreach (string lst in listMusicDirs.CheckedItems)
             {
-                shd.Music.AddRange(Directory.GetFiles(musicDirs.Text + @"\" + sub, "*.mp3")
-                         .Select(Path.GetFileName)
-                         .ToArray());
+                foreach (string subdir in shd.SubDirs)
+                {
+                    if (subdir.Contains(lst))
+                    {
+                        shd.Music.AddRange(Directory.GetFiles(subdir, "*.mp3"));
+                    }
+                }
             }
         }
-
         //Cierre de la ventana principal del programa
         private void Inicio_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -822,6 +833,21 @@ namespace player
                 str = str.Remove(str.LastIndexOf(trimStr));
             }
             return str;
+        }
+
+        private bool canAccess(string dir)
+        {
+            bool res;
+            try
+            {
+                string[] enter = Directory.GetFiles(dir);
+                res = true;
+            }
+            catch
+            {
+                res = false;
+            }
+            return res;
         }
     }
 }

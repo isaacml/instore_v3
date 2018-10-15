@@ -13,6 +13,7 @@ namespace player
         private List<string> publi;
         private List<string> msg;
         private List<string> musica;
+        private List<string> subdir;
         private string estado;
         private string id_entidad;
         private string nom_entidad;
@@ -23,6 +24,7 @@ namespace player
             publi = new List<string>();
             msg = new List<string>();
             musica = new List<string>();
+            subdir = new List<string>();
         }
     
         //Estado de la tienda
@@ -94,6 +96,24 @@ namespace player
                 lock (bloqueo)
                 {
                     musica = value;
+                }
+            }
+        }
+        //Listado Sub-directorios
+        public List<string> SubDirs
+        {
+            get
+            {
+                lock (bloqueo)
+                {
+                    return subdir;
+                }
+            }
+            set
+            {
+                lock (bloqueo)
+                {
+                    subdir = value;
                 }
             }
         }
