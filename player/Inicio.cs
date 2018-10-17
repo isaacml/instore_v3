@@ -10,7 +10,6 @@ using System.Threading;
 using System.Windows.Forms;
 using System.Web;
 using System.Text.RegularExpressions;
-using System.Data.SQLite;
 using System.IO;
 using System.Net;
 
@@ -18,25 +17,17 @@ namespace player
 {
     public partial class Inicio : Form
     {
-        SQLiteConnection connection;
-        private string string_connection = @"Data Source=shop.db; Version=3;";
         private string file_config = "config.ini";
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private Connect con = new Connect();
+        private Domains doms = new Domains();
+        private PubliMsg publimsg = new PubliMsg();
         private bool st_salida = false;  //Evalua la salida del programa
 
         public Inicio()
         {
             InitializeComponent();
-        }
-        //Entrada en el campo de texto (msgIns)
-        private void msgIns_Enter(object sender, EventArgs e)
-        {   //Mostramos un explorador de ficheros
-            if (openMsgInst.ShowDialog() == DialogResult.OK)
-            {
-                msgIns.Text = openMsgInst.FileName;
-            }
         }
         //Explorador de directorios de música
         private void musicDirs_Click(object sender, EventArgs e)
@@ -74,9 +65,21 @@ namespace player
                 {
                     if (subdir.Contains(lst))
                     {
+                        //Guardamos ficheros mp3 en el listado
                         shd.Music.AddRange(Directory.GetFiles(subdir, "*.mp3"));
                     }
                 }
+            }
+        }
+        //Abre el explorador para seleccionar un msg instantaneo
+        private void msgIns_Click(object sender, EventArgs e)
+        {
+            //Mostramos un explorador de ficheros
+            if (openMsgInst.ShowDialog() == DialogResult.OK)
+            {
+                string msgInsta = openMsgInst.FileName;
+                msgIns.Text = msgInsta;
+                shd.InstaMSG = msgInsta;
             }
         }
         //Cierre de la ventana principal del programa
@@ -195,52 +198,20 @@ namespace player
                 }
             }
         }
-
-        /*Evalua que tipo de conexión se va a usar
-        Ejecuta el cgi y nos devuelve un query string*/
-        private string serverConnection(string cgi)
-        {
-            string output = "";
-            WebClient wCli = new WebClient();
-            WebProxy wProxy = new WebProxy();
-            wCli.Encoding = Encoding.UTF8; //UTF8
-
-            //TRUE: Usamos el Proxy
-            if (con.UseProxy())
-            {
-                try
-                {
-                    wProxy.Address = new Uri(con.LoadProxy());
-                    wCli.Proxy = wProxy;
-                    output = wCli.DownloadString(con.LoadServer() + cgi);
-                    errorProxy.SetError(textProxy, "");
-                }
-                catch
-                {
-                    errorProxy.SetError(textProxy, "Proxy Incorrecto");
-                }
-            }
-            //FALSE: Usamos el Servidor
-            else
-            {
-                try
-                {
-                    output = wCli.DownloadString(con.LoadServer() + cgi);
-                    errorServer.SetError(txtServer, "");
-                }
-                catch
-                {
-                    errorServer.SetError(txtServer, "Server Incorrecto");
-                }
-            }
-            return output;
-        }
-
         //LOAD: CARGA DE INICIO 
         private void Inicio_Load(object sender, EventArgs e)
         {
+            foreach (string p in publimsg.DownloadPubli())
+            {
+                string res = serverConnection("/publi_msg.cgi?action=PubliFiles&existencia=N&fichero=" + p);
+                if (res == "Descarga")
+                {
+                    //Procedemos de los ficheros con el estado N
+                    prob.Text += "me descargo: " + p;
+                }
+            }
             showEntidad();
-            uploadDomains();
+            getListado();
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
 
@@ -262,91 +233,25 @@ namespace player
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
             }
-            getListado(); //Recogemos el listado de publi/msg
+            //Recogemos el listado de publi/msg
+            getListado();
         }
-        //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
+        //Muestra el listado de dominios,
+        //Envia una solicitud de publi/msg y guarda los archivos en BD
         private void getListado()
         {
-            string res = serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=Acciona.Transmediterranea.España.Andalucia.Malaga.ACC FORTUNY:.:"));
-            string[] lista = Regex.Split(res, @"\[publi];");
-            string output;
-
-            //EXISTEN FICHEROS DE PUBLICIDAD 
-            if (lista.Length > 1)
-            {   //Se comprueba si hay ficheros de mensajes
-                bool exist_msg = lista[1].Contains(@"[mensaje];");
-                if (!exist_msg)
-                {
-                    // No hay ficheros de mensaje, solo ficheros de publicidad
-                    string[] publi_container = Regex.Split(lista[1], @"\;");
-                    foreach (string s_publi in publi_container)
-                    {
-                        string cl_publi = borrarString(s_publi, @"[mensaje]");
-                        //Separa los datos de publicidad
-                        string[] only_publi = Regex.Split(cl_publi, @"\<=>");
-                        //Obtiene nombre de fichero publi + fecha_inicio + fecha_fin + GAP
-                        output = only_publi[0] + ";" + only_publi[1] + ";" + only_publi[2] + ";" + only_publi[3];
-                        //Se comprueba la existencia de la publicidad en la base de datos
-                        bool exist = existFileInBD(only_publi[0], "publi");
-                        //Guarda la publicidad en la tabla publi de la tienda
-                        savePubliInBD(exist, only_publi[0], only_publi[1], only_publi[2], only_publi[3]);
-                    }
-                }
-                else
-                {
-                    // Hay ficheros de publicidad y de mensaje
-                    string[] lista_mensaje = Regex.Split(lista[1], @"\[mensaje];");
-                    if (lista_mensaje.Length > 1)
-                    {
-                        //PUBLICIDAD
-                        string[] publi_container = lista_mensaje[0].Split(';');
-                        foreach (string s_publi in publi_container)
-                        {
-                            //Separa los datos de publicidad
-                            string[] only_publi = Regex.Split(s_publi, @"\<=>");
-                            //Obtiene nombre de fichero publi + fecha_inicio + fecha_fin + GAP
-                            output = only_publi[0] + ";" + only_publi[1] + ";" + only_publi[2] + ";" + only_publi[3];
-                            //Se comprueba la existencia de la publicidad en la base de datos
-                            bool exist = existFileInBD(only_publi[0], "publi");
-                            //Guarda la publicidad en la tabla publi de la tienda
-                            savePubliInBD(exist, only_publi[0], only_publi[1], only_publi[2], only_publi[3]);
-                        }
-                        //MENSAJES
-                        string[] msg_container = lista_mensaje[1].Split(';');
-                        foreach (string s_msg in msg_container)
-                        {
-                            //Separa los datos de mensaje
-                            string[] sep_msg = Regex.Split(s_msg, @"\<=>");
-                            //Obtiene nombre de fichero mensaje + fecha_inicio + fecha_fin + Hora
-                            output = sep_msg[0] + ";" + sep_msg[1] + ";" + sep_msg[2] + ";" + sep_msg[3];
-                            //Se comprueba la existencia del mensaje en la base de datos
-                            bool exist = existFileInBD(sep_msg[0], "mensaje");
-                            //Guarda el mensaje en la tabla msg de la tienda
-                            saveMsgInBD(exist, sep_msg[0], sep_msg[1], sep_msg[2], sep_msg[3]);
-                        }
-                    }
-                }
-            }
-            //NO EXISTEN FICHEROS DE PUBLICIDAD 
-            else
+            listBoxDom.Items.Clear();
+            //Mostramos los dominios en el panel
+            foreach (string d in doms.ListadoDominios())
             {
-                string[] lst_msg = Regex.Split(res, @"\[mensaje];");
-                if (lst_msg.Length > 1)
-                {   // Solo ficheros de mensajes
-                    string[] msg_container = lst_msg[1].Split(';');
-                    foreach (string s_msg in msg_container)
-                    {
-                        //Separa los datos de mensaje
-                        string[] sep_msg = Regex.Split(s_msg, @"\<=>");
-                        //Obtiene nombre de fichero mensaje + fecha_inicio + fecha_fin + Hora
-                        output = sep_msg[0] + ";" + sep_msg[1] + ";" + sep_msg[2] + ";" + sep_msg[3];
-                        //Se comprueba la existencia del mensaje en la base de datos
-                        bool exist = existFileInBD(sep_msg[0], "mensaje");
-                        //Guarda el mensaje en la tabla msg de la tienda
-                        saveMsgInBD(exist, sep_msg[0], sep_msg[1], sep_msg[2], sep_msg[3]);
-                    }
-                }
+                listBoxDom.Items.Add(d);
             }
+            //Formamos la cadena de dominio
+            string domains = doms.CadenaDominios();
+            //Peticion de listado por dominios
+            string res = serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=" + domains));
+            //Enviamos listado(PubliMsg.cs) para realizar el guardado
+            publimsg.GuardarListado(res);
         }
         //Muestra la entidad (zona de configuración)
         private void showEntidad()
@@ -516,25 +421,15 @@ namespace player
                 string prov = ((Combos)domProv.SelectedItem).Value;
                 string shop = ((Combos)domTienda.SelectedItem).Value;
                 //Colocamos cada una de las organizaciones para formar el dominio
-                string dominio = string.Format("{0} - {1} - {2} - {3} - {4} - {5}", ent, alm, pais, reg, prov, shop);
+                string dominio = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", ent, alm, pais, reg, prov, shop);
                 //Se comprueba la existencia del dominio en la base de datos
-                bool existe = existDomainBD(dominio);
+                bool existe = doms.ExisteDominio(dominio);
                 if (!existe)
                 {
-                    lock (obj)
-                    {
-                        //Se inserta en la BD
-                        using (connection = new SQLiteConnection(string_connection))
-                        {
-                            connection.Open();
-                            string query = string.Format(@"INSERT INTO dominios (dominio) VALUES ('{0}');", dominio);
-                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                            cmd_exc.ExecuteNonQuery();
-                            connection.Close();
-                        }
-                        //Se añade al listbox
-                        listBoxDom.Items.Add(dominio);
-                    }
+                    //Añadimos el dominio a la base de datos
+                    doms.InsertarDominio(dominio);
+                    //Se añade al listbox
+                    listBoxDom.Items.Add(dominio);
                 }
                 else
                 {
@@ -551,290 +446,51 @@ namespace player
         //Borrar Dominio (zona de configuracion)
         private void btnBorrarDom_Click(object sender, EventArgs e)
         {
-            lock (obj)
-            {
-                //borramos dominio de base de datos
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"DELETE FROM dominios WHERE dominio = '{0}'", listBoxDom.GetItemText(listBoxDom.SelectedItem));
-                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                    cmd_exc.ExecuteNonQuery();
-                    connection.Close();
-                }
-                //Borramos dominio del listado
-                listBoxDom.Items.RemoveAt(listBoxDom.SelectedIndex);
-            }
+            //Borramos de la base de datos
+            doms.BorrarDominio(listBoxDom.GetItemText(listBoxDom.SelectedItem));
+            //Borramos dominio del listado
+            listBoxDom.Items.RemoveAt(listBoxDom.SelectedIndex);
         }
-        //Encargado de cargar los dominios de la BD en el listbox
-        private void uploadDomains()
+        /*Evalua que tipo de conexión se va a usar
+        Ejecuta el cgi y nos devuelve un query string*/
+        private string serverConnection(string cgi)
         {
-            lock (obj)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"SELECT dominio FROM dominios");
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        // recogemos los datos
-                        string dom = datos.GetString(datos.GetOrdinal("dominio"));
-                        listBoxDom.Items.Add(dom);
-                    }
-                    connection.Close();
-                }
-            }
-        }
-        //Mira la existencia de un dominio en BD: Devuelve TRUE (existe) o FALSE (no existe)
-        private bool existDomainBD(string dom)
-        {
-            lock (obj)
-            {
-                bool existe = true;
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"SELECT count(*) as cont FROM dominios WHERE dominio=('{0}');", dom);
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        // recogemos los datos
-                        int cont = datos.GetInt32(datos.GetOrdinal("cont"));
-                        if (cont == 0)
-                        {
-                            existe = false;
-                        }
-                    }
-                    connection.Close();
-                }
-                return existe;
-            }
-        }
-        //Mira la existencia de un fichero en una tabla (publi/msg): Devuelve TRUE (existe) o FALSE (no existe)
-        private bool existFileInBD(string namefile, string table)
-        {
-            lock (obj)
-            {
-                bool existe = true;
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"SELECT count(*) as cont FROM {0} WHERE fichero=('{1}');", table, namefile);
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        // recogemos los datos
-                        int cont = datos.GetInt32(datos.GetOrdinal("cont"));
-                        if (cont == 0)
-                        {
-                            existe = false;
-                        }
-                    }
-                    connection.Close();
-                }
-                return existe;
-            }
-        }
-        //Compara la publicidad en la base de datos interna (TIENDA) con la que recibe del server_externo
-        //Si alguno de los datos ha cambiado se procede a la modificación
-        private bool getChangesInPubli(string namefile, string f_ini, string f_fin, string gap)
-        {
-            lock (obj)
-            {
-                bool change = false;
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"SELECT fecha_ini, fecha_fin, gap FROM publi WHERE fichero=('{0}');", namefile);
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //Recogemos los datos
-                        string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
-                        string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
-                        int gap_bd = datos.GetInt32(datos.GetOrdinal("gap"));
-                        //Comprobamos si los datos son distintos
-                        if (f_ini_bd != f_ini || f_fin_bd != f_fin || gap_bd != Convert.ToInt32(gap))
-                        {
-                            change = true; //Se realiza el cambio
-                        }
-                    }
-                    connection.Close();
-                }
-                return change;
-            }
-        }
-        //Compara el mensaje en la base de datos interna (TIENDA) con el que recibe del server_externo
-        //Si alguno de los campos ha cambiado se procede a la modificación
-        private bool getChangesInMsg(string namefile, string f_ini, string f_fin, string playtime)
-        {
-            lock (obj)
-            {
-                bool change = false;
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"SELECT fecha_ini, fecha_fin, playtime FROM mensaje WHERE fichero=('{0}');", namefile);
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //Recogemos los datos
-                        string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
-                        string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
-                        string playtime_bd = datos.GetString(datos.GetOrdinal("playtime"));
-                        //Comprobamos si los datos son distintos
-                        if (f_ini_bd != f_ini || f_fin_bd != f_fin || playtime != playtime_bd)
-                        {
-                            change = true; //Se realiza el cambio
-                        }
-                    }
-                    connection.Close();
-                }
-                return change;
-            }
-        }
-        //Se encarga de insertar un fichero de publicidad en la base de datos de la tienda
-        private void insertPubliInBD(string filename, string stat, string f_ini, string f_fin, string gap)
-        {
-            lock (obj)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"INSERT INTO publi (fichero, existe, fecha_ini, fecha_fin, gap) VALUES ('{0}','{1}','{2}','{3}','{4}');",
-                        filename, stat, f_ini, f_fin, gap);
-                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                    cmd_exc.ExecuteNonQuery();
-                    connection.Close();
-                }
-            }
-        }
-        //Se encarga de insertar un fichero de mensaje en la base de datos de la tienda
-        private void insertMsgInBD(string filename, string stat, string f_ini, string f_fin, string playtime)
-        {
-            lock (obj)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"INSERT INTO mensaje (fichero, existe, fecha_ini, fecha_fin, playtime) VALUES ('{0}','{1}','{2}','{3}','{4}');",
-                        filename, stat, f_ini, f_fin, playtime);
-                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                    cmd_exc.ExecuteNonQuery();
-                    connection.Close();
-                }
-            }
-        }
-        //Se encarga de modificar un fichero de publicidad en la base de datos de la tienda
-        private void updatePubliInBD(string filename, string f_ini, string f_fin, string gap)
-        {
-            lock (obj)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"UPDATE publi SET fecha_ini='{0}', fecha_fin='{1}', gap='{2}' WHERE fichero='{3}';",
-                        f_ini, f_fin, gap, filename);
-                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                    cmd_exc.ExecuteNonQuery();
-                    connection.Close();
-                }
-            }
-        }
-        //Se encarga de modificar un fichero de publicidad en la base de datos de la tienda
-        private void updateMsgInBD(string filename, string f_ini, string f_fin, string playtime)
-        {
-            lock (obj)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    string query = string.Format(@"UPDATE mensaje SET fecha_ini='{0}', fecha_fin='{1}', playtime='{2}' WHERE fichero='{3}';",
-                        f_ini, f_fin, playtime, filename);
-                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                    cmd_exc.ExecuteNonQuery();
-                    connection.Close();
-                }
-            }
-        }
-        //Gestiona el guardado de publicidad en la base de datos de la tienda (insertado/modificado)
-        private void savePubliInBD(bool existe, string filename, string f_ini, string f_fin, string gap)
-        {
-            lock (obj)
-            {
-                if (existe)
-                {
-                    //Ya existe, comprobamos que los datos han cambiado
-                    if (getChangesInPubli(filename, f_ini, f_fin, gap))
-                    {
-                        updatePubliInBD(filename, f_ini, f_fin, gap); //Se modifican los datos
-                    }
-                }
-                else //No existe
-                {
-                    //Se comprueba si la tienda tiene el fichero de publicidad en su carpeta PUBLI.
-                    bool InDir = File.Exists("PUBLI/" + filename);
-                    if (InDir)
-                    {
-                        // LO TIENE, se guarda en la BD con el estado en Y
-                        insertPubliInBD(filename, "Y", f_ini, f_fin, gap);
-                    }
-                    else
-                    {
-                        // NO LO TIENE, se guarda en BD con el estado en N
-                        insertPubliInBD(filename, "N", f_ini, f_fin, gap);
-                    }
-                }
-            }
-        }
-        //Gestiona el guardado de mensajes en la base de datos de la tienda (insertado/modificado)
-        private void saveMsgInBD(bool existe, string filename, string f_ini, string f_fin, string playtime)
-        {
-            lock (obj)
-            {
-                if (existe)
-                {
-                    //Ya existe, comprobamos que los datos han cambiado
-                    if (getChangesInMsg(filename, f_ini, f_fin, playtime))
-                    {
-                        updateMsgInBD(filename, f_ini, f_fin, playtime); //Se modifican los datos
-                    }
-                }
-                else //No existe
-                {
-                    //Se comprueba si la tienda tiene el fichero de mensaje en su carpeta MSG.
-                    bool InDir = File.Exists("MSG/" + filename);
-                    if (InDir)
-                    {
-                        // LO TIENE, se guarda en la BD con el estado en Y
-                        insertMsgInBD(filename, "Y", f_ini, f_fin, playtime);
-                    }
-                    else
-                    {
-                        // NO LO TIENE, se guarda en BD con el estado en N
-                        insertMsgInBD(filename, "N", f_ini, f_fin, playtime);
-                    }
-                }
-            }
-        }
-        //Borrar de una cadena un patrón específico
-        private string borrarString(string str, string trimStr)
-        {
-            if (string.IsNullOrEmpty(str) || string.IsNullOrEmpty(trimStr)) return str;
+            string output = "";
+            WebClient wCli = new WebClient();
+            WebProxy wProxy = new WebProxy();
+            wCli.Encoding = Encoding.UTF8; //UTF8
 
-            while (str.EndsWith(trimStr))
+            //TRUE: Usamos el Proxy
+            if (con.UseProxy())
             {
-                str = str.Remove(str.LastIndexOf(trimStr));
+                try
+                {
+                    wProxy.Address = new Uri(con.LoadProxy());
+                    wCli.Proxy = wProxy;
+                    output = wCli.DownloadString(con.LoadServer() + cgi);
+                    errorProxy.SetError(textProxy, "");
+                }
+                catch
+                {
+                    errorProxy.SetError(textProxy, "Proxy Incorrecto");
+                }
             }
-            return str;
+            //FALSE: Usamos el Servidor
+            else
+            {
+                try
+                {
+                    output = wCli.DownloadString(con.LoadServer() + cgi);
+                    errorServer.SetError(txtServer, "");
+                }
+                catch
+                {
+                    errorServer.SetError(txtServer, "Server Incorrecto");
+                }
+            }
+            return output;
         }
-
+        //Revisa si podemos acceder a una carpeta o no.
         private bool canAccess(string dir)
         {
             bool res;

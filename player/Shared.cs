@@ -10,23 +10,20 @@ namespace player
 {
     class Shared
     {
-        private List<string> publi;
-        private List<string> msg;
         private List<string> musica;
         private List<string> subdir;
         private string estado;
         private string id_entidad;
         private string nom_entidad;
+        private string instamsg;
         private Object bloqueo = new Object();
 
         public Shared()
         {
-            publi = new List<string>();
-            msg = new List<string>();
             musica = new List<string>();
             subdir = new List<string>();
         }
-    
+
         //Estado de la tienda
         public string Status
         {
@@ -117,20 +114,22 @@ namespace player
                 }
             }
         }
-        //Devuelve el listado completo de publicidad
-        public List<string> getPubli()
+        //Listado Sub-directorios
+        public string InstaMSG
         {
-            lock (bloqueo)
+            get
             {
-                return publi;
+                lock (bloqueo)
+                {
+                    return instamsg;
+                }
             }
-        }
-        //Devuelve el listado completo de los mensajes
-        public List<string> getMsg()
-        {
-            lock (bloqueo)
+            set
             {
-                return msg;
+                lock (bloqueo)
+                {
+                    instamsg = value;
+                }
             }
         }
     }

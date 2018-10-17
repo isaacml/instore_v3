@@ -89,6 +89,7 @@
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer5MIN = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
+            this.prob = new System.Windows.Forms.TextBox();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -185,20 +186,23 @@
             // 
             // sendMsgInst
             // 
+            this.sendMsgInst.BackColor = System.Drawing.Color.PaleGreen;
+            this.sendMsgInst.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.sendMsgInst.Location = new System.Drawing.Point(478, 348);
             this.sendMsgInst.Name = "sendMsgInst";
             this.sendMsgInst.Size = new System.Drawing.Size(75, 23);
             this.sendMsgInst.TabIndex = 7;
-            this.sendMsgInst.Text = "Enviar";
-            this.sendMsgInst.UseVisualStyleBackColor = true;
+            this.sendMsgInst.Text = "Play";
+            this.sendMsgInst.UseVisualStyleBackColor = false;
             // 
             // msgIns
             // 
             this.msgIns.Location = new System.Drawing.Point(210, 351);
             this.msgIns.Name = "msgIns";
+            this.msgIns.ReadOnly = true;
             this.msgIns.Size = new System.Drawing.Size(262, 20);
             this.msgIns.TabIndex = 6;
-            this.msgIns.Enter += new System.EventHandler(this.msgIns_Enter);
+            this.msgIns.Click += new System.EventHandler(this.msgIns_Click);
             // 
             // Controles
             // 
@@ -484,6 +488,7 @@
             // 
             // groupBoxDom
             // 
+            this.groupBoxDom.Controls.Add(this.prob);
             this.groupBoxDom.Controls.Add(this.btnBorrarDom);
             this.groupBoxDom.Controls.Add(this.listBoxDom);
             this.groupBoxDom.Controls.Add(this.btnAddDom);
@@ -679,6 +684,13 @@
             // 
             this.errorAddDom.ContainerControl = this;
             // 
+            // prob
+            // 
+            this.prob.Location = new System.Drawing.Point(7, 130);
+            this.prob.Name = "prob";
+            this.prob.Size = new System.Drawing.Size(552, 20);
+            this.prob.TabIndex = 9;
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -709,6 +721,7 @@
             this.Configuración.ResumeLayout(false);
             this.Configuración.PerformLayout();
             this.groupBoxDom.ResumeLayout(false);
+            this.groupBoxDom.PerformLayout();
             this.barra_estado.ResumeLayout(false);
             this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
@@ -781,6 +794,7 @@
         private System.Windows.Forms.ErrorProvider errorProxy;
         private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
+        private System.Windows.Forms.TextBox prob;
     }
 }
 
