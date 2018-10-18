@@ -66,6 +66,7 @@
             this.textProxy = new System.Windows.Forms.TextBox();
             this.txtServer = new System.Windows.Forms.TextBox();
             this.groupBoxDom = new System.Windows.Forms.GroupBox();
+            this.prob = new System.Windows.Forms.TextBox();
             this.btnBorrarDom = new System.Windows.Forms.Button();
             this.listBoxDom = new System.Windows.Forms.ListBox();
             this.btnAddDom = new System.Windows.Forms.Button();
@@ -89,7 +90,7 @@
             this.errorProxy = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer5MIN = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
-            this.prob = new System.Windows.Forms.TextBox();
+            this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -505,6 +506,13 @@
             this.groupBoxDom.TabStop = false;
             this.groupBoxDom.Text = "Configuración de Dominios";
             // 
+            // prob
+            // 
+            this.prob.Location = new System.Drawing.Point(7, 130);
+            this.prob.Name = "prob";
+            this.prob.Size = new System.Drawing.Size(552, 20);
+            this.prob.TabIndex = 9;
+            // 
             // btnBorrarDom
             // 
             this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
@@ -684,12 +692,9 @@
             // 
             this.errorAddDom.ContainerControl = this;
             // 
-            // prob
+            // Timer1MIN
             // 
-            this.prob.Location = new System.Drawing.Point(7, 130);
-            this.prob.Name = "prob";
-            this.prob.Size = new System.Drawing.Size(552, 20);
-            this.prob.TabIndex = 9;
+            this.Timer1MIN.Tick += new System.EventHandler(this.Timer1MIN_Tick);
             // 
             // Inicio
             // 
@@ -795,6 +800,7 @@
         private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
         private System.Windows.Forms.TextBox prob;
+        private System.Windows.Forms.Timer Timer1MIN;
     }
 }
 

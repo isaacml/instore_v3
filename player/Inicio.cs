@@ -203,13 +203,17 @@ namespace player
         {
             showEntidad();
             getListado();
-            solicitudFicheros();
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
 
             int wait5min = (5 * 60 * 1000); // 5 min
+            int wait1min = (1 * 60 * 1000); // 1 min
+            //Cada 5 minutos
             Timer5MIN.Interval = wait5min;
             Timer5MIN.Start();
+            //Cada 1 minuto
+            Timer1MIN.Interval = wait1min;
+            Timer1MIN.Start();
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
@@ -227,6 +231,11 @@ namespace player
             }
             //Recogemos el listado de publi/msg
             getListado();
+        }
+        private void Timer1MIN_Tick(object sender, EventArgs e)
+        {
+            //Solicidud de ficheros publi/msg
+            solicitudFicheros();
         }
         //Muestra el listado de dominios,
         //Envia una solicitud de publi/msg y guarda los archivos en BD
