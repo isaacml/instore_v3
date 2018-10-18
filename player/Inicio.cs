@@ -201,13 +201,18 @@ namespace player
         //LOAD: CARGA DE INICIO 
         private void Inicio_Load(object sender, EventArgs e)
         {
-            showEntidad();
-            getListado();
-            txtServer.Text = con.LoadServer();
-            textProxy.Text = con.LoadProxy();
-
             int wait5min = (5 * 60 * 1000); // 5 min
             int wait1min = (1 * 60 * 1000); // 1 min
+            int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
+
+            showEntidad();
+            getListado();
+            //Muestra las URL(serv/proxy)
+            txtServer.Text = con.LoadServer();
+            textProxy.Text = con.LoadProxy();
+            //Cada 20 horas
+            Timer20HOUR.Interval = wait20hour;
+            Timer20HOUR.Start();
             //Cada 5 minutos
             Timer5MIN.Interval = wait5min;
             Timer5MIN.Start();
@@ -217,18 +222,8 @@ namespace player
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
-            shd.Status = serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
-            //Estado de la Tienda
-            if (shd.Status == "1")
-            {
-                barStInfoServ.ForeColor = Color.Green;
-                barStInfoServ.Text = "Activada";
-            }
-            if (shd.Status == "0" || shd.Status == "")
-            {
-                barStInfoServ.ForeColor = Color.Red;
-                barStInfoServ.Text = "Desactivada";
-            }
+            //Tomamos el estado
+            getStatus();
             //Recogemos el listado de publi/msg
             getListado();
         }
@@ -236,6 +231,11 @@ namespace player
         {
             //Solicidud de ficheros publi/msg
             solicitudFicheros();
+        }
+        private void Timer20HOUR_Tick(object sender, EventArgs e)
+        {
+            //Borramos los ficheros antiguos
+            publimsg.BorrarPublicidad();
         }
         //Muestra el listado de dominios,
         //Envia una solicitud de publi/msg y guarda los archivos en BD
@@ -553,6 +553,22 @@ namespace player
             }
             //SINO: Usamos el Server
             wCli.DownloadFile(str, carpeta + fichero);
+        }
+        //Obtiene el estado de la tienda (Activada o Desactivada)
+        private void getStatus()
+        {
+            shd.Status = serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
+            //Estado de la Tienda
+            if (shd.Status == "1")
+            {
+                barStInfoServ.ForeColor = Color.Green;
+                barStInfoServ.Text = "Activada";
+            }
+            if (shd.Status == "0" || shd.Status == "")
+            {
+                barStInfoServ.ForeColor = Color.Red;
+                barStInfoServ.Text = "Desactivada";
+            }
         }
     }
 }

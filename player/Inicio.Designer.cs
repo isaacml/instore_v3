@@ -91,6 +91,7 @@
             this.Timer5MIN = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
+            this.Timer20HOUR = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -696,6 +697,10 @@
             // 
             this.Timer1MIN.Tick += new System.EventHandler(this.Timer1MIN_Tick);
             // 
+            // Timer20HOUR
+            // 
+            this.Timer20HOUR.Tick += new System.EventHandler(this.Timer20HOUR_Tick);
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -801,6 +806,7 @@
         private System.Windows.Forms.ErrorProvider errorAddDom;
         private System.Windows.Forms.TextBox prob;
         private System.Windows.Forms.Timer Timer1MIN;
+        private System.Windows.Forms.Timer Timer20HOUR;
     }
 }
 

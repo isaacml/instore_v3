@@ -137,31 +137,80 @@ namespace player
                 }
             }
         }
+        //Borrar publicidad con dos años de antigüedad
+        public void BorrarPublicidad()
+        {
+            lock (bloqueo)
+            {
+                int year = DateTime.Now.Year;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero, fecha_fin FROM publi", connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los datos
+                        int id = datos.GetInt32(datos.GetOrdinal("id"));
+                        string name = datos.GetString(datos.GetOrdinal("fichero"));
+                        string f_fin = datos.GetString(datos.GetOrdinal("fecha_fin"));
+                        int only_year_fin = Convert.ToInt32(f_fin.Substring(0, 4));
+                        //Si han pasado dos años de antigüedad
+                        if (only_year_fin <= year - 2)
+                        {
+                            //Borramos la publicidad de base de datos
+                            using (connection = new SQLiteConnection(string_connection))
+                            {
+                                connection.Open();
+                                string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
+                                SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                                cmd_exc.ExecuteNonQuery();
+                                connection.Close();
+                            }
+                            //Borramos fichero de la carpeta publicidad
+                            File.Delete(dir_publi + name);
+                        }
+                    }
+                    connection.Close();
+                }
+            }
+        }
         //Gestiona el guardado de publicidad en la base de datos de la tienda (insertado/modificado)
         private void savePubliInBD(bool existe, string filename, string f_ini, string f_fin, string gap)
         {
             lock (bloqueo)
             {
-                if (existe)
+                //Se comprueba la existencia de publicidad en la carpeta PUBLI.
+                bool InDir = File.Exists(dir_publi + filename);
+                if (existe) //Existencia en BD
                 {
-                    //Ya existe, comprobamos que los datos han cambiado
-                    if (getChangesInPubli(filename, f_ini, f_fin, gap))
-                    {
-                        updatePubliInBD(filename, f_ini, f_fin, gap); //Se modifican los datos
-                    }
-                }
-                else //No existe
-                {
-                    //Se comprueba si la tienda tiene el fichero de publicidad en su carpeta PUBLI.
-                    bool InDir = File.Exists(dir_publi + filename);
                     if (InDir)
                     {
-                        // LO TIENE, se guarda en la BD con el estado en Y
+                        //Ya existe en dir y en BD, modificamos
+                        if (getChangesInPubli(filename, "Y", f_ini, f_fin, gap))
+                        {
+                            updatePubliInBD(filename, "Y", f_ini, f_fin, gap);
+                        }
+                    }
+                    else
+                    {
+                        //No existe en dir, modificamos los datos
+                        if (getChangesInPubli(filename, "N", f_ini, f_fin, gap))
+                        {
+                            updatePubliInBD(filename, "N", f_ini, f_fin, gap);
+                        }
+                    }
+                }
+                else //No existe en BD
+                {
+                    if (InDir)
+                    {
+                        //Existe en dir se guarda en la BD con el estado(Y)
                         insertPubliInBD(filename, "Y", f_ini, f_fin, gap);
                     }
                     else
                     {
-                        // NO LO TIENE, se guarda en BD con el estado en N
+                        //No existe en dir se guarda en la BD con el estado(N)
                         insertPubliInBD(filename, "N", f_ini, f_fin, gap);
                     }
                 }
@@ -172,41 +221,52 @@ namespace player
         {
             lock (bloqueo)
             {
-                if (existe)
-                {
-                    //Ya existe, comprobamos que los datos han cambiado
-                    if (getChangesInMsg(filename, f_ini, f_fin, playtime))
-                    {
-                        updateMsgInBD(filename, f_ini, f_fin, playtime); //Se modifican los datos
-                    }
-                }
-                else //No existe
-                {
-                    //Se comprueba si la tienda tiene el fichero de mensaje en su carpeta MSG.
-                    bool InDir = File.Exists(dir_msg + filename);
+                //Se comprueba la existencia de publicidad en la carpeta PUBLI.
+                bool InDir = File.Exists(dir_msg + filename);
+                if (existe) //Existencia en BD
+                { 
                     if (InDir)
                     {
-                        // LO TIENE, se guarda en la BD con el estado en Y
+                        //Ya existe en dir y en BD, modificamos
+                        if (getChangesInMsg(filename, "Y", f_ini, f_fin, playtime))
+                        {
+                            updateMsgInBD(filename, "Y", f_ini, f_fin, playtime); //Se modifican los datos
+                        }
+                    }
+                    else
+                    {
+                        //No existe en dir, modificamos los datos
+                        if (getChangesInMsg(filename, "N", f_ini, f_fin, playtime))
+                        {
+                            updateMsgInBD(filename, "N", f_ini, f_fin, playtime); //Se modifican los datos
+                        }
+                    }   
+                }
+                else //No existe en BD
+                {
+                    if (InDir)
+                    {
+                        //Existe en dir se guarda en la BD con el estado(Y)
                         insertMsgInBD(filename, "Y", f_ini, f_fin, playtime);
                     }
                     else
                     {
-                        // NO LO TIENE, se guarda en BD con el estado en N
+                        //No existe en dir se guarda en la BD con el estado(N)
                         insertMsgInBD(filename, "N", f_ini, f_fin, playtime);
                     }
                 }
             }
         }
         //Se encarga de modificar un fichero de publicidad en la base de datos de la tienda
-        private void updatePubliInBD(string filename, string f_ini, string f_fin, string gap)
+        private void updatePubliInBD(string filename, string existe, string f_ini, string f_fin, string gap)
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"UPDATE publi SET fecha_ini='{0}', fecha_fin='{1}', gap='{2}' WHERE fichero='{3}';",
-                        f_ini, f_fin, gap, filename);
+                    string query = string.Format(@"UPDATE publi SET existe='{0}', fecha_ini='{1}', fecha_fin='{2}', gap='{3}' WHERE fichero='{4}';",
+                        existe, f_ini, f_fin, gap, filename);
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -214,15 +274,15 @@ namespace player
             }
         }
         //Se encarga de modificar un fichero de publicidad en la base de datos de la tienda
-        private void updateMsgInBD(string filename, string f_ini, string f_fin, string playtime)
+        private void updateMsgInBD(string filename, string existe,  string f_ini, string f_fin, string playtime)
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"UPDATE mensaje SET fecha_ini='{0}', fecha_fin='{1}', playtime='{2}' WHERE fichero='{3}';",
-                        f_ini, f_fin, playtime, filename);
+                    string query = string.Format(@"UPDATE mensaje SET existe='{0}', fecha_ini='{1}', fecha_fin='{2}', playtime='{3}' WHERE fichero='{4}';",
+                        existe, f_ini, f_fin, playtime, filename);
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -231,7 +291,7 @@ namespace player
         }
         //Compara la publicidad en la base de datos interna (TIENDA) con la que recibe del server_externo
         //Si alguno de los datos ha cambiado se procede a la modificación
-        private bool getChangesInPubli(string namefile, string f_ini, string f_fin, string gap)
+        private bool getChangesInPubli(string namefile, string existe, string f_ini, string f_fin, string gap)
         {
             lock (bloqueo)
             {
@@ -239,17 +299,18 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT fecha_ini, fecha_fin, gap FROM publi WHERE fichero=('{0}');", namefile);
+                    string query = string.Format(@"SELECT existe, fecha_ini, fecha_fin, gap FROM publi WHERE fichero=('{0}');", namefile);
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
                         //Recogemos los datos
+                        string existe_bd = datos.GetString(datos.GetOrdinal("existe"));
                         string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
                         string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
                         int gap_bd = datos.GetInt32(datos.GetOrdinal("gap"));
                         //Comprobamos si los datos son distintos
-                        if (f_ini_bd != f_ini || f_fin_bd != f_fin || gap_bd != Convert.ToInt32(gap))
+                        if (existe_bd != existe || f_ini_bd != f_ini || f_fin_bd != f_fin || gap_bd != Convert.ToInt32(gap))
                         {
                             change = true; //Se realiza el cambio
                         }
@@ -261,7 +322,7 @@ namespace player
         }
         //Compara el mensaje en la base de datos interna (TIENDA) con el que recibe del server_externo
         //Si alguno de los campos ha cambiado se procede a la modificación
-        private bool getChangesInMsg(string namefile, string f_ini, string f_fin, string playtime)
+        private bool getChangesInMsg(string namefile, string existe, string f_ini, string f_fin, string playtime)
         {
             lock (bloqueo)
             {
@@ -269,17 +330,18 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT fecha_ini, fecha_fin, playtime FROM mensaje WHERE fichero=('{0}');", namefile);
+                    string query = string.Format(@"SELECT existe, fecha_ini, fecha_fin, playtime FROM mensaje WHERE fichero=('{0}');", namefile);
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
                         //Recogemos los datos
+                        string existe_bd = datos.GetString(datos.GetOrdinal("existe"));
                         string f_ini_bd = datos.GetString(datos.GetOrdinal("fecha_ini"));
                         string f_fin_bd = datos.GetString(datos.GetOrdinal("fecha_fin"));
                         string playtime_bd = datos.GetString(datos.GetOrdinal("playtime"));
                         //Comprobamos si los datos son distintos
-                        if (f_ini_bd != f_ini || f_fin_bd != f_fin || playtime != playtime_bd)
+                        if (existe_bd != existe || f_ini_bd != f_ini || f_fin_bd != f_fin || playtime != playtime_bd)
                         {
                             change = true; //Se realiza el cambio
                         }
