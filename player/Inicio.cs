@@ -201,17 +201,9 @@ namespace player
         //LOAD: CARGA DE INICIO 
         private void Inicio_Load(object sender, EventArgs e)
         {
-            foreach (string p in publimsg.DownloadPubli())
-            {
-                string res = serverConnection("/publi_msg.cgi?action=PubliFiles&existencia=N&fichero=" + p);
-                if (res == "Descarga")
-                {
-                    //Procedemos de los ficheros con el estado N
-                    prob.Text += "me descargo: " + p;
-                }
-            }
             showEntidad();
             getListado();
+            solicitudFicheros();
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
 
@@ -504,6 +496,54 @@ namespace player
                 res = false;
             }
             return res;
+        }
+        //Solicita los ficheros de publicidad que deben descargarse
+        private void solicitudFicheros()
+        {
+            foreach (string getpub in publimsg.DownloadPubli())
+            {
+                string[] pub = Regex.Split(getpub, @"\[]");
+                string nombre = pub[0]; //Nombre del Fichero
+                string f_ini = pub[1]; //Fecha de Inicio
+                string gap = pub[2]; //Fecha de Inicio
+                //Envio de peticion (publi_msg.cgi)
+                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}&fecha_ini={1}&gap={2}", nombre, f_ini, gap));
+                if (res == "Descarga")
+                {
+                    //Descarga del fichero de publicidad
+                    downloadFile(nombre, @"publicidad", @"PUBLI/");
+                    //Modificamos el estado a YES
+                    publimsg.UpdateStatus(nombre, @"publi");
+                }
+            }
+            foreach (string m in publimsg.DownloadMsg())
+            {
+                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}", m));
+                if (res == "Descarga")
+                {
+                    //Descarga del fichero de publicidad
+                    downloadFile(m, @"mensaje", @"MSG/");
+                    //Modificamos el estado a YES
+                    publimsg.UpdateStatus(m, @"mensaje");
+                }
+            }
+        }
+        //Encargado de la descarga de ficheros de publicidad y mensajes
+        private void downloadFile(string fichero, string tipo, string carpeta)
+        {
+            WebClient wCli = new WebClient();
+            WebProxy wProxy = new WebProxy();
+            wCli.Encoding = Encoding.UTF8; //UTF8
+            string str = string.Format(@"{0}/{1}?accion={2}", con.LoadServer(), fichero, tipo);
+            //TRUE: Usamos el Proxy
+            if (con.UseProxy())
+            {
+                
+                wProxy.Address = new Uri(con.LoadProxy());
+                wCli.Proxy = wProxy;
+            }
+            //SINO: Usamos el Server
+            wCli.DownloadFile(str, carpeta + fichero);
         }
     }
 }

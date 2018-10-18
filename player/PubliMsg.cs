@@ -16,24 +16,28 @@ namespace player
         private SQLiteConnection connection;
         private Object bloqueo = new Object();
         private string string_connection;
+        private string dir_publi;
+        private string dir_msg;
         private List<string> pfordown;
-        private List<string> mensajes;
+        private List<string> mfordown;
 
         public PubliMsg()
         {
             pfordown = new List<string>();
-            mensajes = new List<string>();
+            mfordown = new List<string>();
             string_connection = @"Data Source=shop.db; Version=3;";
+            dir_publi = "PUBLI/";
+            dir_msg = "MSG/";
         }
-        //Devuelve la publicidad que toca
+        //Envia la publicidad con estado(N) para la descarga
         public List<string> DownloadPubli()
         {
             return publiForDown();
         }
-        //Devuelve los mensajes que tocan
-        public List<string> GetMsg()
+        //Envia los mensajes con estado(N) para la descarga
+        public List<string> DownloadMsg()
         {
-            return MsgY();
+            return msgForDown();
         }
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
         public void GuardarListado(string listado)
@@ -118,7 +122,21 @@ namespace player
                 }
             }
         }
-
+        //Modifica el estado de publicidad/mensajes
+        public void UpdateStatus(string filename, string tabla)
+        {
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"UPDATE {0} SET existe='Y' WHERE fichero='{1}';", tabla, filename);
+                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                    cmd_exc.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+        }
         //Gestiona el guardado de publicidad en la base de datos de la tienda (insertado/modificado)
         private void savePubliInBD(bool existe, string filename, string f_ini, string f_fin, string gap)
         {
@@ -135,7 +153,7 @@ namespace player
                 else //No existe
                 {
                     //Se comprueba si la tienda tiene el fichero de publicidad en su carpeta PUBLI.
-                    bool InDir = File.Exists("PUBLI/" + filename);
+                    bool InDir = File.Exists(dir_publi + filename);
                     if (InDir)
                     {
                         // LO TIENE, se guarda en la BD con el estado en Y
@@ -165,7 +183,7 @@ namespace player
                 else //No existe
                 {
                     //Se comprueba si la tienda tiene el fichero de mensaje en su carpeta MSG.
-                    bool InDir = File.Exists("MSG/" + filename);
+                    bool InDir = File.Exists(dir_msg + filename);
                     if (InDir)
                     {
                         // LO TIENE, se guarda en la BD con el estado en Y
@@ -337,14 +355,16 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM publi WHERE existe='N'", connection);
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero, fecha_ini, gap FROM publi WHERE existe='N'", connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
                         //Recogemos los datos
                         string fichero = datos.GetString(datos.GetOrdinal("fichero"));
+                        string fecha_ini = datos.GetString(datos.GetOrdinal("fecha_ini"));
+                        int gap = datos.GetInt32(datos.GetOrdinal("gap"));
                         //Guarda en listado de publicidad
-                        pfordown.Add(fichero);
+                        pfordown.Add(string.Format("{0}[]{1}[]{2}[]", fichero, fecha_ini, gap));
                     }
                     connection.Close();
                 }
@@ -352,25 +372,25 @@ namespace player
             }
         }
         //Recoge mensajes con el estado(YES) y los guarda en un listado
-        private List<string> MsgY()
+        private List<string> msgForDown()
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM mensaje WHERE existe='Y'", connection);
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM mensaje WHERE existe='N'", connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
                         //Recogemos los ficheros
                         string fichero = datos.GetString(datos.GetOrdinal("fichero"));
                         //Guarda en listado de mensajes
-                        mensajes.Add(fichero);
+                        mfordown.Add(fichero);
                     }
                     connection.Close();
                 }
-                return mensajes;
+                return mfordown;
             }
         }
         //Borrar de una cadena un patrón específico
