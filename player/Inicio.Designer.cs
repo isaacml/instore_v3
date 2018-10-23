@@ -32,6 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Inicio));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Música = new System.Windows.Forms.TabPage();
+            this.playerInsta = new AudioDjStudio.AudioDjStudio();
             this.lblListDirMusic = new System.Windows.Forms.Label();
             this.listMusicDirs = new System.Windows.Forms.CheckedListBox();
             this.lblMusicDirs = new System.Windows.Forms.Label();
@@ -124,6 +125,7 @@
             // 
             // Música
             // 
+            this.Música.Controls.Add(this.playerInsta);
             this.Música.Controls.Add(this.lblListDirMusic);
             this.Música.Controls.Add(this.listMusicDirs);
             this.Música.Controls.Add(this.lblMusicDirs);
@@ -139,6 +141,15 @@
             this.Música.Text = "Música";
             this.Música.ToolTipText = "Música";
             this.Música.UseVisualStyleBackColor = true;
+            // 
+            // playerInsta
+            // 
+            this.playerInsta.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+            this.playerInsta.LastError = AudioDjStudio.enumErrorCodes.ERR_NOERROR;
+            this.playerInsta.Location = new System.Drawing.Point(625, 323);
+            this.playerInsta.Name = "playerInsta";
+            this.playerInsta.Size = new System.Drawing.Size(48, 48);
+            this.playerInsta.TabIndex = 8;
             // 
             // lblListDirMusic
             // 
@@ -196,6 +207,7 @@
             this.sendMsgInst.TabIndex = 7;
             this.sendMsgInst.Text = "Play";
             this.sendMsgInst.UseVisualStyleBackColor = false;
+            this.sendMsgInst.Click += new System.EventHandler(this.sendMsgInst_Click);
             // 
             // msgIns
             // 
@@ -636,12 +648,12 @@
             // barStSong
             // 
             this.barStSong.Name = "barStSong";
-            this.barStSong.Size = new System.Drawing.Size(113, 17);
-            this.barStSong.Text = "American Love.mp3";
+            this.barStSong.Size = new System.Drawing.Size(102, 17);
+            this.barStSong.Text = "Playing song.mp3";
             // 
             // openMsgInst
             // 
-            this.openMsgInst.Filter = "Archivos MP3|*.mp3";
+            this.openMsgInst.Filter = "Archivos MP3|*.mp3|Archivos WAV|*.wav";
             // 
             // contextMenuStrip1
             // 
@@ -807,6 +819,7 @@
         private System.Windows.Forms.TextBox prob;
         private System.Windows.Forms.Timer Timer1MIN;
         private System.Windows.Forms.Timer Timer20HOUR;
+        private AudioDjStudio.AudioDjStudio playerInsta;
     }
 }
 

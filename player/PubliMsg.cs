@@ -155,7 +155,7 @@ namespace player
                         string name = datos.GetString(datos.GetOrdinal("fichero"));
                         string f_fin = datos.GetString(datos.GetOrdinal("fecha_fin"));
                         int only_year_fin = Convert.ToInt32(f_fin.Substring(0, 4));
-                        //Si han pasado dos años de antigüedad
+                        //Si han pasado 2 años de antigüedad
                         if (only_year_fin <= year - 2)
                         {
                             //Borramos la publicidad de base de datos

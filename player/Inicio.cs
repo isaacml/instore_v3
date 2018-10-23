@@ -12,6 +12,7 @@ using System.Web;
 using System.Text.RegularExpressions;
 using System.IO;
 using System.Net;
+using AudioDjStudio;
 
 namespace player
 {
@@ -65,8 +66,9 @@ namespace player
                 {
                     if (subdir.Contains(lst))
                     {
-                        //Guardamos ficheros mp3 en el listado
-                        shd.Music.AddRange(Directory.GetFiles(subdir, "*.mp3"));
+                        //Guardamos ficheros mp3/wav en el listado
+                        shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
+                                  .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav")));
                     }
                 }
             }
@@ -78,7 +80,7 @@ namespace player
             if (openMsgInst.ShowDialog() == DialogResult.OK)
             {
                 string msgInsta = openMsgInst.FileName;
-                msgIns.Text = msgInsta;
+                msgIns.Text = Path.GetFileName(msgInsta);
                 shd.InstaMSG = msgInsta;
             }
         }
@@ -201,15 +203,25 @@ namespace player
         //LOAD: CARGA DE INICIO 
         private void Inicio_Load(object sender, EventArgs e)
         {
+            // Verifica la presencia de tarjetas de audio
+            Int32 nOutputs = playerInsta.GetOutputDevicesCount();
+            if (nOutputs == 0)
+            {
+                MessageBox.Show("No hay dispositivos de audio.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                this.Close();
+            }
+
             int wait5min = (5 * 60 * 1000); // 5 min
             int wait1min = (1 * 60 * 1000); // 1 min
             int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
-
+            //Toma la entidad y el listado por primera vez
             showEntidad();
             getListado();
             //Muestra las URL(serv/proxy)
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
+            // Iniciamos el sistema de audio
+            playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
             //Cada 20 horas
             Timer20HOUR.Interval = wait20hour;
             Timer20HOUR.Start();
@@ -222,20 +234,26 @@ namespace player
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
+            Timer5MIN.Stop();
             //Tomamos el estado
             getStatus();
             //Recogemos el listado de publi/msg
             getListado();
+            Timer5MIN.Start();
         }
         private void Timer1MIN_Tick(object sender, EventArgs e)
         {
+            Timer1MIN.Stop();
             //Solicidud de ficheros publi/msg
             solicitudFicheros();
+            Timer1MIN.Start();
         }
         private void Timer20HOUR_Tick(object sender, EventArgs e)
         {
+            Timer20HOUR.Stop();
             //Borramos los ficheros antiguos
             publimsg.BorrarPublicidad();
+            Timer20HOUR.Start();
         }
         //Muestra el listado de dominios,
         //Envia una solicitud de publi/msg y guarda los archivos en BD
@@ -527,7 +545,7 @@ namespace player
             }
             foreach (string m in publimsg.DownloadMsg())
             {
-                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}", m));
+                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=MsgFiles&existencia=N&fichero={0}", m));
                 if (res == "Descarga")
                 {
                     //Descarga del fichero de publicidad
@@ -569,6 +587,26 @@ namespace player
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
             }
+        }
+
+        private void sendMsgInst_Click(object sender, EventArgs e)
+        {
+            byte[] bytes = null;
+
+            bytes = File.ReadAllBytes(shd.InstaMSG);
+
+            if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
+            {
+                SoundInfo2 info = new SoundInfo2();
+                playerInsta.SoundInfoGet(0, ref info);
+                barStSong.Text = info.strMP3Tag1Title;
+            }
+            else
+            {
+                MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+            playerInsta.PlaySound(0);
         }
     }
 }
