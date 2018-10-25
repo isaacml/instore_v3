@@ -67,7 +67,6 @@
             this.textProxy = new System.Windows.Forms.TextBox();
             this.txtServer = new System.Windows.Forms.TextBox();
             this.groupBoxDom = new System.Windows.Forms.GroupBox();
-            this.prob = new System.Windows.Forms.TextBox();
             this.btnBorrarDom = new System.Windows.Forms.Button();
             this.listBoxDom = new System.Windows.Forms.ListBox();
             this.btnAddDom = new System.Windows.Forms.Button();
@@ -93,6 +92,7 @@
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.Timer20HOUR = new System.Windows.Forms.Timer(this.components);
+            this.prob = new System.Windows.Forms.ListBox();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -125,6 +125,7 @@
             // 
             // Música
             // 
+            this.Música.Controls.Add(this.prob);
             this.Música.Controls.Add(this.playerInsta);
             this.Música.Controls.Add(this.lblListDirMusic);
             this.Música.Controls.Add(this.listMusicDirs);
@@ -502,7 +503,6 @@
             // 
             // groupBoxDom
             // 
-            this.groupBoxDom.Controls.Add(this.prob);
             this.groupBoxDom.Controls.Add(this.btnBorrarDom);
             this.groupBoxDom.Controls.Add(this.listBoxDom);
             this.groupBoxDom.Controls.Add(this.btnAddDom);
@@ -518,13 +518,6 @@
             this.groupBoxDom.TabIndex = 0;
             this.groupBoxDom.TabStop = false;
             this.groupBoxDom.Text = "Configuración de Dominios";
-            // 
-            // prob
-            // 
-            this.prob.Location = new System.Drawing.Point(7, 130);
-            this.prob.Name = "prob";
-            this.prob.Size = new System.Drawing.Size(552, 20);
-            this.prob.TabIndex = 9;
             // 
             // btnBorrarDom
             // 
@@ -713,6 +706,14 @@
             // 
             this.Timer20HOUR.Tick += new System.EventHandler(this.Timer20HOUR_Tick);
             // 
+            // prob
+            // 
+            this.prob.FormattingEnabled = true;
+            this.prob.Location = new System.Drawing.Point(8, 101);
+            this.prob.Name = "prob";
+            this.prob.Size = new System.Drawing.Size(193, 225);
+            this.prob.TabIndex = 9;
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -743,7 +744,6 @@
             this.Configuración.ResumeLayout(false);
             this.Configuración.PerformLayout();
             this.groupBoxDom.ResumeLayout(false);
-            this.groupBoxDom.PerformLayout();
             this.barra_estado.ResumeLayout(false);
             this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
@@ -816,10 +816,10 @@
         private System.Windows.Forms.ErrorProvider errorProxy;
         private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
-        private System.Windows.Forms.TextBox prob;
         private System.Windows.Forms.Timer Timer1MIN;
         private System.Windows.Forms.Timer Timer20HOUR;
         private AudioDjStudio.AudioDjStudio playerInsta;
+        private System.Windows.Forms.ListBox prob;
     }
 }
 

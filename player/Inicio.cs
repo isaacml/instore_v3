@@ -72,6 +72,10 @@ namespace player
                     }
                 }
             }
+            foreach (string m in shd.Music)
+            {
+                prob.Items.Add(m);
+            }
         }
         //Abre el explorador para seleccionar un msg instantaneo
         private void msgIns_Click(object sender, EventArgs e)
@@ -593,20 +597,24 @@ namespace player
         {
             byte[] bytes = null;
 
-            bytes = File.ReadAllBytes(shd.InstaMSG);
-
-            if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
+            if (shd.InstaMSG != null)
             {
-                SoundInfo2 info = new SoundInfo2();
-                playerInsta.SoundInfoGet(0, ref info);
-                barStSong.Text = info.strMP3Tag1Title;
-            }
-            else
-            {
-                MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+                bytes = File.ReadAllBytes(shd.InstaMSG);
 
-            playerInsta.PlaySound(0);
+                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
+                {
+                    SoundInfo2 info = new SoundInfo2();
+                    playerInsta.SoundInfoGet(0, ref info);
+                    barStSong.Text = info.strMP3Tag1Title;
+                }
+                else
+                {
+                    MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+
+                playerInsta.PlaySound(0);
+                prob.Items.Add("Acabado");
+            }
         }
     }
 }
