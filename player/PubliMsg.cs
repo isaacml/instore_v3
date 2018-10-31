@@ -29,15 +29,40 @@ namespace player
             dir_publi = "PUBLI/";
             dir_msg = "MSG/";
         }
-        //Envia la publicidad con estado(N) para la descarga
+        //Publicidad que tiene que descargarse la tienda
         public List<string> DownloadPubli()
         {
             return publiForDown();
         }
-        //Envia los mensajes con estado(N) para la descarga
+        //Mensajes que tiene que descargarse la tienda
         public List<string> DownloadMsg()
         {
             return msgForDown();
+        }
+
+        //Recoge los ficheros de publicidad con estado en "Y"
+        public List<string> Mensajes()
+        {
+            lock (bloqueo)
+            {
+                List<string> publicidad = new List<string>();
+                publicidad.Clear();
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM publi WHERE existe='Y'", connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los ficheros
+                        string fichero = datos.GetString(datos.GetOrdinal("fichero"));
+                        //Guardamos en el listado de publicidad
+                        publicidad.Add(fichero);
+                    }
+                    connection.Close();
+                }
+                return publicidad;
+            }
         }
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
         public void GuardarListado(string listado)
@@ -137,6 +162,7 @@ namespace player
                 }
             }
         }
+        
         //Borrar publicidad con dos años de antigüedad
         public void BorrarPublicidad()
         {
@@ -409,7 +435,7 @@ namespace player
                 return existe;
             }
         }
-        //Recoge publicidad con el estado(N) y los guarda en un listado
+        //Recoge publicidad con el estado(N) y los guarda en un listado para la descarga
         private List<string> publiForDown()
         {
             lock (bloqueo)
@@ -433,7 +459,7 @@ namespace player
                 return pfordown;
             }
         }
-        //Recoge mensajes con el estado(YES) y los guarda en un listado
+        //Recoge mensajes con el estado(NO) y los guarda en un listado para la descarga
         private List<string> msgForDown()
         {
             lock (bloqueo)
@@ -453,6 +479,48 @@ namespace player
                     connection.Close();
                 }
                 return mfordown;
+            }
+        }
+        //Recoge la publicidad diaria con estado en "Y"
+        //La que se encuentra dentro del rango de fechas
+        public Tuple<List<string>, int> GetPublicidad()
+        {
+            lock (bloqueo)
+            {
+                int gap = 0;
+                int fecha_actual = Convert.ToInt32(DateTime.Now.ToString("yyyyMMdd"));
+                List<string> publicidad = new List<string>();
+                try
+                {
+                    publicidad.Clear();
+                    using (connection = new SQLiteConnection(string_connection))
+                    {
+                        connection.Open();
+                        SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero, fecha_ini, fecha_fin, gap FROM publi WHERE existe='Y'", connection);
+                        SQLiteDataReader datos = cmd.ExecuteReader();
+                        while (datos.Read())
+                        {
+                            //Recogemos los datos
+                            string fichero = datos.GetString(datos.GetOrdinal("fichero"));
+                            int f_ini = Convert.ToInt32(datos.GetString(datos.GetOrdinal("fecha_ini")));
+                            int f_fin = Convert.ToInt32(datos.GetString(datos.GetOrdinal("fecha_fin")));
+                            gap = datos.GetInt32(datos.GetOrdinal("gap"));
+                            //Obtenemos la publicidad entre el rango de fechas
+                            if (f_ini <= fecha_actual && f_fin >= fecha_actual)
+                            {
+                                //Guardamos en el listado de publicidad
+                                publicidad.Add(fichero);
+                            }
+                        }
+                        connection.Close();
+                    }
+                }
+                catch
+                {
+                    gap = 0;
+                }
+                
+                return new Tuple<List<string>, int>(publicidad, gap);
             }
         }
         //Borrar de una cadena un patrón específico

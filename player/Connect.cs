@@ -97,18 +97,25 @@ namespace player
             lock (bloqueo)
             {
                 string output = "";
-                using (connection = new SQLiteConnection(string_connection))
+                try
                 {
-                    connection.Open();
-                    string query = string.Format(@"SELECT proxy FROM conection");
-                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
+                    using (connection = new SQLiteConnection(string_connection))
                     {
-                        output = datos.GetString(datos.GetOrdinal("proxy"));
+                        connection.Open();
+                        string query = string.Format(@"SELECT proxy FROM conection");
+                        SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                        SQLiteDataReader datos = cmd.ExecuteReader();
+                        while (datos.Read())
+                        {
+                            output = datos.GetString(datos.GetOrdinal("proxy"));
 
+                        }
+                        connection.Close();
                     }
-                    connection.Close();
+                }
+                catch
+                {
+                    output = "";
                 }
                 return output;
             }

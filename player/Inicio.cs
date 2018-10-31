@@ -24,7 +24,10 @@ namespace player
         private Connect con = new Connect();
         private Domains doms = new Domains();
         private PubliMsg publimsg = new PubliMsg();
+        private Random rand = new Random();
         private bool st_salida = false;  //Evalua la salida del programa
+        private double songduration = 0;
+        private List<string> lst_music = new List<string>();
 
         public Inicio()
         {
@@ -60,6 +63,10 @@ namespace player
         private void listMusicDirs_SelectedValueChanged(object sender, EventArgs e)
         {
             shd.Music.Clear();
+            lst_music.Clear();
+
+            int pl = 1;
+
             foreach (string lst in listMusicDirs.CheckedItems)
             {
                 foreach (string subdir in shd.SubDirs)
@@ -72,9 +79,21 @@ namespace player
                     }
                 }
             }
-            foreach (string m in shd.Music)
+            //Creamos el listado de musica junto con la publicidad
+            foreach (string m in shuffle(shd.Music, rand))
             {
-                prob.Items.Add(m);
+                lst_music.Add(m);
+                Tuple<List<string>, int> publi = publimsg.GetPublicidad();
+                if (pl == publi.Item2)
+                {
+                    foreach (string p in shuffle(publi.Item1, rand))
+                    {
+                        lst_music.Add("PUBLI/" + p);
+                        break;
+                    }
+                    pl = 0;
+                }
+                pl++;
             }
         }
         //Abre el explorador para seleccionar un msg instantaneo
@@ -220,12 +239,13 @@ namespace player
             int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
             //Toma la entidad y el listado por primera vez
             showEntidad();
-            getListado();
+            getListDomains();
             //Muestra las URL(serv/proxy)
             txtServer.Text = con.LoadServer();
             textProxy.Text = con.LoadProxy();
             // Iniciamos el sistema de audio
             playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
+            playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
             //Cada 20 horas
             Timer20HOUR.Interval = wait20hour;
             Timer20HOUR.Start();
@@ -235,14 +255,15 @@ namespace player
             //Cada 1 minuto
             Timer1MIN.Interval = wait1min;
             Timer1MIN.Start();
+            
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
             Timer5MIN.Stop();
             //Tomamos el estado
             getStatus();
-            //Recogemos el listado de publi/msg
-            getListado();
+            //Solicitud (publi/msg) por dominio
+            getListDomains();
             Timer5MIN.Start();
         }
         private void Timer1MIN_Tick(object sender, EventArgs e)
@@ -259,9 +280,8 @@ namespace player
             publimsg.BorrarPublicidad();
             Timer20HOUR.Start();
         }
-        //Muestra el listado de dominios,
-        //Envia una solicitud de publi/msg y guarda los archivos en BD
-        private void getListado()
+        //Solicitud de publi/msg, guardado de archivos en BD
+        private void getListDomains()
         {
             listBoxDom.Items.Clear();
             //Mostramos los dominios en el panel
@@ -613,8 +633,62 @@ namespace player
                 }
 
                 playerInsta.PlaySound(0);
-                prob.Items.Add("Acabado");
+                // recoge la duración de la canción cargada
+                playerInsta.SoundDurationGet(0, ref songduration, false); // millisecs
+                Thread.Sleep(Convert.ToInt32(songduration));
+                prob.Items.Add("Acabada");
             }
+        }
+        public List<string> shuffle(List<string> list, Random rng)
+        {
+            int n = list.Count();
+            while (n > 1)
+            {
+                n--;
+                int i = rand.Next(n + 1);
+                string temp = list[i];
+                list[i] = list[n];
+                list[n] = temp;
+            }
+            return list;
+        }
+        private void bgMusic_DoWork(object sender, DoWorkEventArgs e)
+        {
+
+            foreach (string l in lst_music)
+            {
+                e.Result = l;
+                Thread.Sleep(Convert.ToInt32(songduration));
+            }
+        }
+
+        private void iniPlayer_Click(object sender, EventArgs e)
+        {
+            if (!bgMusic.IsBusy)
+            {
+                bgMusic.RunWorkerAsync();
+            }
+        }
+
+        private void bgMusic_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            byte[] bytes = null;
+            string fichero = e.Result.ToString();
+            prob.Items.Add(fichero);
+
+            bytes = File.ReadAllBytes(fichero);
+            if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
+            {
+                SoundInfo2 info = new SoundInfo2();
+                playerMusic.SoundDurationGet(0, ref songduration, false); // millisecs
+                playerMusic.SoundInfoGet(0, ref info);
+                barStSong.Text = info.strMP3Tag1Title;
+            }
+            else
+            {
+                MessageBox.Show("No puedo cargar el fichero " + fichero, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            playerMusic.PlaySound(0);
         }
     }
 }

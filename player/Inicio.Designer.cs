@@ -32,6 +32,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Inicio));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Música = new System.Windows.Forms.TabPage();
+            this.prob = new System.Windows.Forms.ListBox();
             this.playerInsta = new AudioDjStudio.AudioDjStudio();
             this.lblListDirMusic = new System.Windows.Forms.Label();
             this.listMusicDirs = new System.Windows.Forms.CheckedListBox();
@@ -41,6 +42,8 @@
             this.sendMsgInst = new System.Windows.Forms.Button();
             this.msgIns = new System.Windows.Forms.TextBox();
             this.Controles = new System.Windows.Forms.TabPage();
+            this.iniPlayer = new System.Windows.Forms.Button();
+            this.playerMusic = new AudioDjStudio.AudioDjStudio();
             this.groupVolumen = new System.Windows.Forms.GroupBox();
             this.lblFadeContainer = new System.Windows.Forms.Label();
             this.lblMsgContainer = new System.Windows.Forms.Label();
@@ -92,7 +95,7 @@
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.Timer20HOUR = new System.Windows.Forms.Timer(this.components);
-            this.prob = new System.Windows.Forms.ListBox();
+            this.bgMusic = new System.ComponentModel.BackgroundWorker();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -142,6 +145,14 @@
             this.Música.Text = "Música";
             this.Música.ToolTipText = "Música";
             this.Música.UseVisualStyleBackColor = true;
+            // 
+            // prob
+            // 
+            this.prob.FormattingEnabled = true;
+            this.prob.Location = new System.Drawing.Point(47, 6);
+            this.prob.Name = "prob";
+            this.prob.Size = new System.Drawing.Size(670, 43);
+            this.prob.TabIndex = 9;
             // 
             // playerInsta
             // 
@@ -221,6 +232,8 @@
             // 
             // Controles
             // 
+            this.Controles.Controls.Add(this.iniPlayer);
+            this.Controles.Controls.Add(this.playerMusic);
             this.Controles.Controls.Add(this.groupVolumen);
             this.Controles.Controls.Add(this.groupHorario);
             this.Controles.Location = new System.Drawing.Point(4, 22);
@@ -231,6 +244,25 @@
             this.Controles.Text = "Controles";
             this.Controles.ToolTipText = "Tienda";
             this.Controles.UseVisualStyleBackColor = true;
+            // 
+            // iniPlayer
+            // 
+            this.iniPlayer.Location = new System.Drawing.Point(585, 323);
+            this.iniPlayer.Name = "iniPlayer";
+            this.iniPlayer.Size = new System.Drawing.Size(75, 23);
+            this.iniPlayer.TabIndex = 3;
+            this.iniPlayer.Text = "PLAY";
+            this.iniPlayer.UseVisualStyleBackColor = true;
+            this.iniPlayer.Click += new System.EventHandler(this.iniPlayer_Click);
+            // 
+            // playerMusic
+            // 
+            this.playerMusic.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+            this.playerMusic.LastError = AudioDjStudio.enumErrorCodes.ERR_NOERROR;
+            this.playerMusic.Location = new System.Drawing.Point(585, 352);
+            this.playerMusic.Name = "playerMusic";
+            this.playerMusic.Size = new System.Drawing.Size(48, 48);
+            this.playerMusic.TabIndex = 2;
             // 
             // groupVolumen
             // 
@@ -706,13 +738,10 @@
             // 
             this.Timer20HOUR.Tick += new System.EventHandler(this.Timer20HOUR_Tick);
             // 
-            // prob
+            // bgMusic
             // 
-            this.prob.FormattingEnabled = true;
-            this.prob.Location = new System.Drawing.Point(8, 101);
-            this.prob.Name = "prob";
-            this.prob.Size = new System.Drawing.Size(193, 225);
-            this.prob.TabIndex = 9;
+            this.bgMusic.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgMusic_DoWork);
+            this.bgMusic.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgMusic_RunWorkerCompleted);
             // 
             // Inicio
             // 
@@ -820,6 +849,9 @@
         private System.Windows.Forms.Timer Timer20HOUR;
         private AudioDjStudio.AudioDjStudio playerInsta;
         private System.Windows.Forms.ListBox prob;
+        private AudioDjStudio.AudioDjStudio playerMusic;
+        private System.Windows.Forms.Button iniPlayer;
+        private System.ComponentModel.BackgroundWorker bgMusic;
     }
 }
 
