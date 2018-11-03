@@ -39,31 +39,6 @@ namespace player
         {
             return msgForDown();
         }
-
-        //Recoge los ficheros de publicidad con estado en "Y"
-        public List<string> Mensajes()
-        {
-            lock (bloqueo)
-            {
-                List<string> publicidad = new List<string>();
-                publicidad.Clear();
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM publi WHERE existe='Y'", connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //Recogemos los ficheros
-                        string fichero = datos.GetString(datos.GetOrdinal("fichero"));
-                        //Guardamos en el listado de publicidad
-                        publicidad.Add(fichero);
-                    }
-                    connection.Close();
-                }
-                return publicidad;
-            }
-        }
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
         public void GuardarListado(string listado)
         {
@@ -521,6 +496,30 @@ namespace player
                 }
                 
                 return new Tuple<List<string>, int>(publicidad, gap);
+            }
+        }
+        //Recoge los ficheros de mensaje con estado en "Y"
+        public List<string> GetMensajes()
+        {
+            lock (bloqueo)
+            {
+                List<string> mensajes = new List<string>();
+                mensajes.Clear();
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM mensaje WHERE existe='Y'", connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los ficheros
+                        string fichero = datos.GetString(datos.GetOrdinal("fichero"));
+                        //Guardamos en el listado de publicidad
+                        mensajes.Add(fichero);
+                    }
+                    connection.Close();
+                }
+                return mensajes;
             }
         }
         //Borrar de una cadena un patrón específico

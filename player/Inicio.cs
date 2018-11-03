@@ -26,8 +26,8 @@ namespace player
         private PubliMsg publimsg = new PubliMsg();
         private Random rand = new Random();
         private bool st_salida = false;  //Evalua la salida del programa
-        private double songduration = 0;
-        private List<string> lst_music = new List<string>();
+        private double songduration = 0; 
+        private bool changes_in_pl = false;
 
         public Inicio()
         {
@@ -63,10 +63,6 @@ namespace player
         private void listMusicDirs_SelectedValueChanged(object sender, EventArgs e)
         {
             shd.Music.Clear();
-            lst_music.Clear();
-
-            int pl = 1;
-
             foreach (string lst in listMusicDirs.CheckedItems)
             {
                 foreach (string subdir in shd.SubDirs)
@@ -79,22 +75,7 @@ namespace player
                     }
                 }
             }
-            //Creamos el listado de musica junto con la publicidad
-            foreach (string m in shuffle(shd.Music, rand))
-            {
-                lst_music.Add(m);
-                Tuple<List<string>, int> publi = publimsg.GetPublicidad();
-                if (pl == publi.Item2)
-                {
-                    foreach (string p in shuffle(publi.Item1, rand))
-                    {
-                        lst_music.Add("PUBLI/" + p);
-                        break;
-                    }
-                    pl = 0;
-                }
-                pl++;
-            }
+            changes_in_pl = true;
         }
         //Abre el explorador para seleccionar un msg instantaneo
         private void msgIns_Click(object sender, EventArgs e)
@@ -141,54 +122,20 @@ namespace player
         //Ajustes de volumen para el track bar de musica
         private void trackBarMusica_Scroll(object sender, EventArgs e)
         {
-            if (trackBarMusica.Value >= trackBarFade.Value)
-            {
-                lblMusicContainer.Text = trackBarMusica.Value.ToString();
-            }
-            else
-            {
-                trackBarMusica.Value = trackBarFade.Value;
-            }
+            playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+            lblMusicContainer.Text = trackBarMusica.Value.ToString();
         }
         //Ajustes de volumen para el track bar de publicidad
         private void trackBarPubli_Scroll(object sender, EventArgs e)
         {
-            if (trackBarPubli.Value >= trackBarFade.Value)
-            {
-                lblPubliContainer.Text = trackBarPubli.Value.ToString();
-            }
-            else
-            {
-                trackBarPubli.Value = trackBarFade.Value;
-            }
+
+            lblPubliContainer.Text = trackBarPubli.Value.ToString();
         }
         //Ajustes de volumen para el track bar de mensajes
         private void trackBarMsg_Scroll(object sender, EventArgs e)
         {
-            if (trackBarMsg.Value >= trackBarFade.Value)
-            {
-                lblMsgContainer.Text = trackBarMsg.Value.ToString();
-            }
-            else
-            {
-                trackBarMsg.Value = trackBarFade.Value;
-            }
-        }
-        //Ajustes de volumen para el track bar de Fade Out
-        private void trackBarFade_Scroll(object sender, EventArgs e)
-        {
-            //Se calcula el valor máximo para el fade out
-            int max = 0;
-            //Se obtiene el valor minimo de los otros tracks
-            max = Math.Min(trackBarMusica.Value, trackBarPubli.Value);
-            max = Math.Min(max, trackBarMsg.Value);
-            //Se comprueba que el fade no supera ese valor
-            if (max >= trackBarFade.Value)
-                lblFadeContainer.Text = trackBarFade.Value.ToString();
-            else
-            {
-                trackBarFade.Value = max;
-            }
+
+            lblMsgContainer.Text = trackBarMsg.Value.ToString();
         }
         
         private void btnSendServer_Click(object sender, EventArgs e)
@@ -255,7 +202,9 @@ namespace player
             //Cada 1 minuto
             Timer1MIN.Interval = wait1min;
             Timer1MIN.Start();
-            
+            //Reproductor: cada 1seg
+            tPlayer.Start();
+
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
@@ -533,21 +482,7 @@ namespace player
             }
             return output;
         }
-        //Revisa si podemos acceder a una carpeta o no.
-        private bool canAccess(string dir)
-        {
-            bool res;
-            try
-            {
-                string[] enter = Directory.GetFiles(dir);
-                res = true;
-            }
-            catch
-            {
-                res = false;
-            }
-            return res;
-        }
+        
         //Solicita los ficheros de publicidad que deben descargarse
         private void solicitudFicheros()
         {
@@ -565,6 +500,8 @@ namespace player
                     downloadFile(nombre, @"publicidad", @"PUBLI/");
                     //Modificamos el estado a YES
                     publimsg.UpdateStatus(nombre, @"publi");
+                    //Informamos al player de la nueva publicidad
+                    changes_in_pl = true;
                 }
             }
             foreach (string m in publimsg.DownloadMsg())
@@ -576,6 +513,7 @@ namespace player
                     downloadFile(m, @"mensaje", @"MSG/");
                     //Modificamos el estado a YES
                     publimsg.UpdateStatus(m, @"mensaje");
+                    changes_in_pl = true;
                 }
             }
         }
@@ -612,7 +550,7 @@ namespace player
                 barStInfoServ.Text = "Desactivada";
             }
         }
-
+        //Encargado de Reproducir un mensaje instantaneo
         private void sendMsgInst_Click(object sender, EventArgs e)
         {
             byte[] bytes = null;
@@ -621,24 +559,101 @@ namespace player
             {
                 bytes = File.ReadAllBytes(shd.InstaMSG);
 
-                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
-                {
-                    SoundInfo2 info = new SoundInfo2();
-                    playerInsta.SoundInfoGet(0, ref info);
-                    barStSong.Text = info.strMP3Tag1Title;
-                }
+                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR){}
                 else
                 {
                     MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
+                //Bajamos el sonido del reproductor de musica                                                          
+                playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
+                //Reproducimos el instantaneo
                 playerInsta.PlaySound(0);
-                // recoge la duración de la canción cargada
-                playerInsta.SoundDurationGet(0, ref songduration, false); // millisecs
-                Thread.Sleep(Convert.ToInt32(songduration));
-                prob.Items.Add("Acabada");
+                //bloqueamos boton: evita reproduccion masiva
+                sendMsgInst.Enabled = false;
             }
         }
+        //PLAYER: Musica + Publicidad
+        private void tPlayer_Tick(object sender, EventArgs e)
+        {
+            enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
+            enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
+            //Tiene lugar cuando hay cambios en la playlist
+            if (changes_in_pl)
+            {
+                //cargamos una nueva PL
+                crearPL();
+                //comprobamos que la PL de musica está vacía
+                if (playerMusic.PlayListGetCount(0) != 0)
+                {
+                    //Paramos la reproduccion de la PL
+                    playerMusic.PlayListStop(0, false);
+                }
+                changes_in_pl = false;
+            }
+            //Cuando acaba la reproduccion de un instantaneo
+            if (instaStatus == enumPlayerStatus.SOUND_STOPPED)
+            {
+                //Subimos el sonido del reproductor de musica                                                          
+                playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                //Habilitamos el boton del player instantaneo
+                sendMsgInst.Enabled = true;
+            }
+            //Cuando se está reproduciendo la PL
+            if (playerStatus == enumPlayerStatus.SOUND_PLAYING)
+            {
+                double position = 0;
+                double percentage = 0;
+                //Calculamos el progreso de la cancion
+                playerMusic.SoundPositionGet(0, ref position, false);
+                percentage = position / songduration * 100.00;
+                barStStatus.Value = (int)percentage; // la mostramos en el pBar
+            }
+            //Si la PL ha acabado, volvemos a lanzar otra    
+            if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
+            {
+                if (playerMusic.PlayListExecute(0, true) == enumErrorCodes.NOERROR){}
+                else {MessageBox.Show("No se puedo cargar la playlist.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);}
+            }
+        }
+        //Informacion de la canción cuando se carga
+        private void playerMusic_SoundLoaded(object sender, SoundLoadedEventArgs e)
+        {
+            SoundInfo2 info = new SoundInfo2();
+            playerMusic.SoundInfoGet(0, ref info);
+            //Duracion de la canción
+            playerMusic.SoundDurationGet(0, ref songduration, false);
+            barStSong.Text = info.strMP3Tag1Title;
+        }
+        //GENERADOR DE PLAYLIST
+        private void crearPL()
+        {
+            int pl = 1;
+            short cont = 0;
+            playerMusic.PlayListCreate(0);
+            prob.Items.Clear();
+
+            //crea el listado de musica + publicidad
+            foreach (string m in shuffle(shd.Music, rand))
+            {
+                playerMusic.PlayListAddItem(0, m, cont);
+                prob.Items.Add(m);
+
+                Tuple<List<string>, int> publi = publimsg.GetPublicidad();
+                if (pl == publi.Item2)
+                {
+                    foreach (string p in shuffle(publi.Item1, rand))
+                    {
+                        playerMusic.PlayListAddItem(0, "PUBLI/" + p, cont);
+                        prob.Items.Add("PUBLI/" + p);
+                        break;
+                    }
+                    pl = 0;
+                }
+                pl++;
+                cont++;
+            }
+        }
+        //Shuffle casero, creado con un random
         public List<string> shuffle(List<string> list, Random rng)
         {
             int n = list.Count();
@@ -652,43 +667,20 @@ namespace player
             }
             return list;
         }
-        private void bgMusic_DoWork(object sender, DoWorkEventArgs e)
+        //Revisa si podemos acceder a una carpeta o no.
+        private bool canAccess(string dir)
         {
-
-            foreach (string l in lst_music)
+            bool res;
+            try
             {
-                e.Result = l;
-                Thread.Sleep(Convert.ToInt32(songduration));
+                string[] enter = Directory.GetFiles(dir);
+                res = true;
             }
-        }
-
-        private void iniPlayer_Click(object sender, EventArgs e)
-        {
-            if (!bgMusic.IsBusy)
+            catch
             {
-                bgMusic.RunWorkerAsync();
+                res = false;
             }
-        }
-
-        private void bgMusic_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            byte[] bytes = null;
-            string fichero = e.Result.ToString();
-            prob.Items.Add(fichero);
-
-            bytes = File.ReadAllBytes(fichero);
-            if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) // carga en fichero en el player 0
-            {
-                SoundInfo2 info = new SoundInfo2();
-                playerMusic.SoundDurationGet(0, ref songduration, false); // millisecs
-                playerMusic.SoundInfoGet(0, ref info);
-                barStSong.Text = info.strMP3Tag1Title;
-            }
-            else
-            {
-                MessageBox.Show("No puedo cargar el fichero " + fichero, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            playerMusic.PlaySound(0);
+            return res;
         }
     }
 }

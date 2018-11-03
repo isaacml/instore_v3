@@ -42,18 +42,14 @@
             this.sendMsgInst = new System.Windows.Forms.Button();
             this.msgIns = new System.Windows.Forms.TextBox();
             this.Controles = new System.Windows.Forms.TabPage();
-            this.iniPlayer = new System.Windows.Forms.Button();
             this.playerMusic = new AudioDjStudio.AudioDjStudio();
             this.groupVolumen = new System.Windows.Forms.GroupBox();
-            this.lblFadeContainer = new System.Windows.Forms.Label();
             this.lblMsgContainer = new System.Windows.Forms.Label();
             this.lblPubliContainer = new System.Windows.Forms.Label();
             this.lblMusicContainer = new System.Windows.Forms.Label();
-            this.lblTrackFade = new System.Windows.Forms.Label();
             this.lblTrackMsg = new System.Windows.Forms.Label();
             this.lblTrackPubli = new System.Windows.Forms.Label();
             this.lblTrackMusic = new System.Windows.Forms.Label();
-            this.trackBarFade = new System.Windows.Forms.TrackBar();
             this.trackBarMsg = new System.Windows.Forms.TrackBar();
             this.trackBarPubli = new System.Windows.Forms.TrackBar();
             this.trackBarMusica = new System.Windows.Forms.TrackBar();
@@ -95,12 +91,11 @@
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.Timer20HOUR = new System.Windows.Forms.Timer(this.components);
-            this.bgMusic = new System.ComponentModel.BackgroundWorker();
+            this.tPlayer = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
             this.groupVolumen.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarFade)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMsg)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarPubli)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMusica)).BeginInit();
@@ -232,7 +227,6 @@
             // 
             // Controles
             // 
-            this.Controles.Controls.Add(this.iniPlayer);
             this.Controles.Controls.Add(this.playerMusic);
             this.Controles.Controls.Add(this.groupVolumen);
             this.Controles.Controls.Add(this.groupHorario);
@@ -245,16 +239,6 @@
             this.Controles.ToolTipText = "Tienda";
             this.Controles.UseVisualStyleBackColor = true;
             // 
-            // iniPlayer
-            // 
-            this.iniPlayer.Location = new System.Drawing.Point(585, 323);
-            this.iniPlayer.Name = "iniPlayer";
-            this.iniPlayer.Size = new System.Drawing.Size(75, 23);
-            this.iniPlayer.TabIndex = 3;
-            this.iniPlayer.Text = "PLAY";
-            this.iniPlayer.UseVisualStyleBackColor = true;
-            this.iniPlayer.Click += new System.EventHandler(this.iniPlayer_Click);
-            // 
             // playerMusic
             // 
             this.playerMusic.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
@@ -263,18 +247,16 @@
             this.playerMusic.Name = "playerMusic";
             this.playerMusic.Size = new System.Drawing.Size(48, 48);
             this.playerMusic.TabIndex = 2;
+            this.playerMusic.SoundLoaded += new AudioDjStudio.AudioDjStudio.SoundLoadedEventHandler(this.playerMusic_SoundLoaded);
             // 
             // groupVolumen
             // 
-            this.groupVolumen.Controls.Add(this.lblFadeContainer);
             this.groupVolumen.Controls.Add(this.lblMsgContainer);
             this.groupVolumen.Controls.Add(this.lblPubliContainer);
             this.groupVolumen.Controls.Add(this.lblMusicContainer);
-            this.groupVolumen.Controls.Add(this.lblTrackFade);
             this.groupVolumen.Controls.Add(this.lblTrackMsg);
             this.groupVolumen.Controls.Add(this.lblTrackPubli);
             this.groupVolumen.Controls.Add(this.lblTrackMusic);
-            this.groupVolumen.Controls.Add(this.trackBarFade);
             this.groupVolumen.Controls.Add(this.trackBarMsg);
             this.groupVolumen.Controls.Add(this.trackBarPubli);
             this.groupVolumen.Controls.Add(this.trackBarMusica);
@@ -285,19 +267,10 @@
             this.groupVolumen.TabStop = false;
             this.groupVolumen.Text = "Volumen";
             // 
-            // lblFadeContainer
-            // 
-            this.lblFadeContainer.AutoSize = true;
-            this.lblFadeContainer.Location = new System.Drawing.Point(308, 215);
-            this.lblFadeContainer.Name = "lblFadeContainer";
-            this.lblFadeContainer.Size = new System.Drawing.Size(19, 13);
-            this.lblFadeContainer.TabIndex = 9;
-            this.lblFadeContainer.Text = "10";
-            // 
             // lblMsgContainer
             // 
             this.lblMsgContainer.AutoSize = true;
-            this.lblMsgContainer.Location = new System.Drawing.Point(225, 215);
+            this.lblMsgContainer.Location = new System.Drawing.Point(279, 215);
             this.lblMsgContainer.Name = "lblMsgContainer";
             this.lblMsgContainer.Size = new System.Drawing.Size(19, 13);
             this.lblMsgContainer.TabIndex = 9;
@@ -306,7 +279,7 @@
             // lblPubliContainer
             // 
             this.lblPubliContainer.AutoSize = true;
-            this.lblPubliContainer.Location = new System.Drawing.Point(149, 215);
+            this.lblPubliContainer.Location = new System.Drawing.Point(179, 215);
             this.lblPubliContainer.Name = "lblPubliContainer";
             this.lblPubliContainer.Size = new System.Drawing.Size(19, 13);
             this.lblPubliContainer.TabIndex = 8;
@@ -317,23 +290,14 @@
             this.lblMusicContainer.AutoSize = true;
             this.lblMusicContainer.Location = new System.Drawing.Point(68, 215);
             this.lblMusicContainer.Name = "lblMusicContainer";
-            this.lblMusicContainer.Size = new System.Drawing.Size(19, 13);
+            this.lblMusicContainer.Size = new System.Drawing.Size(25, 13);
             this.lblMusicContainer.TabIndex = 7;
-            this.lblMusicContainer.Text = "30";
-            // 
-            // lblTrackFade
-            // 
-            this.lblTrackFade.AutoSize = true;
-            this.lblTrackFade.Location = new System.Drawing.Point(291, 28);
-            this.lblTrackFade.Name = "lblTrackFade";
-            this.lblTrackFade.Size = new System.Drawing.Size(51, 13);
-            this.lblTrackFade.TabIndex = 0;
-            this.lblTrackFade.Text = "Fade Out";
+            this.lblMusicContainer.Text = "100";
             // 
             // lblTrackMsg
             // 
             this.lblTrackMsg.AutoSize = true;
-            this.lblTrackMsg.Location = new System.Drawing.Point(210, 28);
+            this.lblTrackMsg.Location = new System.Drawing.Point(261, 28);
             this.lblTrackMsg.Name = "lblTrackMsg";
             this.lblTrackMsg.Size = new System.Drawing.Size(52, 13);
             this.lblTrackMsg.TabIndex = 0;
@@ -342,7 +306,7 @@
             // lblTrackPubli
             // 
             this.lblTrackPubli.AutoSize = true;
-            this.lblTrackPubli.Location = new System.Drawing.Point(134, 28);
+            this.lblTrackPubli.Location = new System.Drawing.Point(161, 28);
             this.lblTrackPubli.Name = "lblTrackPubli";
             this.lblTrackPubli.Size = new System.Drawing.Size(56, 13);
             this.lblTrackPubli.TabIndex = 0;
@@ -357,21 +321,9 @@
             this.lblTrackMusic.TabIndex = 0;
             this.lblTrackMusic.Text = "Música";
             // 
-            // trackBarFade
-            // 
-            this.trackBarFade.Location = new System.Drawing.Point(294, 44);
-            this.trackBarFade.Maximum = 100;
-            this.trackBarFade.Name = "trackBarFade";
-            this.trackBarFade.Orientation = System.Windows.Forms.Orientation.Vertical;
-            this.trackBarFade.Size = new System.Drawing.Size(45, 168);
-            this.trackBarFade.TabIndex = 6;
-            this.trackBarFade.TickFrequency = 10;
-            this.trackBarFade.Value = 10;
-            this.trackBarFade.Scroll += new System.EventHandler(this.trackBarFade_Scroll);
-            // 
             // trackBarMsg
             // 
-            this.trackBarMsg.Location = new System.Drawing.Point(213, 44);
+            this.trackBarMsg.Location = new System.Drawing.Point(264, 44);
             this.trackBarMsg.Maximum = 100;
             this.trackBarMsg.Name = "trackBarMsg";
             this.trackBarMsg.Orientation = System.Windows.Forms.Orientation.Vertical;
@@ -383,7 +335,7 @@
             // 
             // trackBarPubli
             // 
-            this.trackBarPubli.Location = new System.Drawing.Point(137, 44);
+            this.trackBarPubli.Location = new System.Drawing.Point(164, 44);
             this.trackBarPubli.Maximum = 100;
             this.trackBarPubli.Name = "trackBarPubli";
             this.trackBarPubli.Orientation = System.Windows.Forms.Orientation.Vertical;
@@ -404,7 +356,7 @@
             this.trackBarMusica.Size = new System.Drawing.Size(45, 168);
             this.trackBarMusica.TabIndex = 3;
             this.trackBarMusica.TickFrequency = 10;
-            this.trackBarMusica.Value = 30;
+            this.trackBarMusica.Value = 100;
             this.trackBarMusica.Scroll += new System.EventHandler(this.trackBarMusica_Scroll);
             // 
             // groupHorario
@@ -667,8 +619,8 @@
             // barStStatus
             // 
             this.barStStatus.Name = "barStStatus";
-            this.barStStatus.Size = new System.Drawing.Size(100, 16);
-            this.barStStatus.Value = 50;
+            this.barStStatus.Size = new System.Drawing.Size(200, 16);
+            this.barStStatus.Step = 1;
             // 
             // barStSong
             // 
@@ -738,10 +690,10 @@
             // 
             this.Timer20HOUR.Tick += new System.EventHandler(this.Timer20HOUR_Tick);
             // 
-            // bgMusic
+            // tPlayer
             // 
-            this.bgMusic.DoWork += new System.ComponentModel.DoWorkEventHandler(this.bgMusic_DoWork);
-            this.bgMusic.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(this.bgMusic_RunWorkerCompleted);
+            this.tPlayer.Interval = 1000;
+            this.tPlayer.Tick += new System.EventHandler(this.tPlayer_Tick);
             // 
             // Inicio
             // 
@@ -764,7 +716,6 @@
             this.Controles.ResumeLayout(false);
             this.groupVolumen.ResumeLayout(false);
             this.groupVolumen.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarFade)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMsg)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarPubli)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarMusica)).EndInit();
@@ -814,15 +765,12 @@
         private System.Windows.Forms.DateTimePicker dateTimePicker1;
         private System.Windows.Forms.GroupBox groupVolumen;
         private System.Windows.Forms.Label lblTrackMusic;
-        private System.Windows.Forms.TrackBar trackBarFade;
         private System.Windows.Forms.TrackBar trackBarMsg;
         private System.Windows.Forms.TrackBar trackBarPubli;
         private System.Windows.Forms.TrackBar trackBarMusica;
-        private System.Windows.Forms.Label lblTrackFade;
         private System.Windows.Forms.Label lblTrackMsg;
         private System.Windows.Forms.Label lblTrackPubli;
         private System.Windows.Forms.Label lblMusicContainer;
-        private System.Windows.Forms.Label lblFadeContainer;
         private System.Windows.Forms.Label lblMsgContainer;
         private System.Windows.Forms.Label lblPubliContainer;
         private System.Windows.Forms.GroupBox groupBoxDom;
@@ -850,8 +798,7 @@
         private AudioDjStudio.AudioDjStudio playerInsta;
         private System.Windows.Forms.ListBox prob;
         private AudioDjStudio.AudioDjStudio playerMusic;
-        private System.Windows.Forms.Button iniPlayer;
-        private System.ComponentModel.BackgroundWorker bgMusic;
+        private System.Windows.Forms.Timer tPlayer;
     }
 }
 
