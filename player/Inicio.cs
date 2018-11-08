@@ -22,12 +22,15 @@ namespace player
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private Connect con = new Connect();
+        private Horario hro = new Horario();
         private Domains doms = new Domains();
         private PubliMsg publimsg = new PubliMsg();
         private Random rand = new Random();
         private bool st_salida = false;  //Evalua la salida del programa
-        private double songduration = 0; 
-        private bool changes_in_pl = false;
+        private double songduration = 0;
+        private bool changes_in_PL = false;
+        private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
+        Queue<string> playlist = new Queue<string>();
 
         public Inicio()
         {
@@ -67,15 +70,18 @@ namespace player
             {
                 foreach (string subdir in shd.SubDirs)
                 {
-                    if (subdir.Contains(lst))
+                    if (canAccess(subdir))
                     {
-                        //Guardamos ficheros mp3/wav en el listado
-                        shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
-                                  .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav")));
+                        if (subdir.Contains(lst))
+                        {
+                            //Guardamos ficheros mp3/wav en el listado
+                            shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
+                                      .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
+                        }
                     }
                 }
             }
-            changes_in_pl = true;
+            changes_in_PL = true;
         }
         //Abre el explorador para seleccionar un msg instantaneo
         private void msgIns_Click(object sender, EventArgs e)
@@ -128,16 +134,15 @@ namespace player
         //Ajustes de volumen para el track bar de publicidad
         private void trackBarPubli_Scroll(object sender, EventArgs e)
         {
-
             lblPubliContainer.Text = trackBarPubli.Value.ToString();
         }
         //Ajustes de volumen para el track bar de mensajes
         private void trackBarMsg_Scroll(object sender, EventArgs e)
         {
-
+            playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
             lblMsgContainer.Text = trackBarMsg.Value.ToString();
         }
-        
+
         private void btnSendServer_Click(object sender, EventArgs e)
         {
             if ((!txtServer.Text.Contains("http://")) && (!txtServer.Text.Contains("https://")))
@@ -174,37 +179,40 @@ namespace player
         private void Inicio_Load(object sender, EventArgs e)
         {
             // Verifica la presencia de tarjetas de audio
-            Int32 nOutputs = playerInsta.GetOutputDevicesCount();
-            if (nOutputs == 0)
+            Int32 nOutputsI = playerInsta.GetOutputDevicesCount();
+            Int32 nOutputsM = playerMusic.GetOutputDevicesCount();
+            if (nOutputsI == 0 && nOutputsM == 0)
             {
                 MessageBox.Show("No hay dispositivos de audio.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                st_salida = true;
                 this.Close();
             }
-
-            int wait5min = (5 * 60 * 1000); // 5 min
-            int wait1min = (1 * 60 * 1000); // 1 min
-            int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
-            //Toma la entidad y el listado por primera vez
-            showEntidad();
-            getListDomains();
-            //Muestra las URL(serv/proxy)
-            txtServer.Text = con.LoadServer();
-            textProxy.Text = con.LoadProxy();
-            // Iniciamos el sistema de audio
-            playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
-            playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
-            //Cada 20 horas
-            Timer20HOUR.Interval = wait20hour;
-            Timer20HOUR.Start();
-            //Cada 5 minutos
-            Timer5MIN.Interval = wait5min;
-            Timer5MIN.Start();
-            //Cada 1 minuto
-            Timer1MIN.Interval = wait1min;
-            Timer1MIN.Start();
-            //Reproductor: cada 1seg
-            tPlayer.Start();
-
+            else
+            {
+                int wait5min = (5 * 60 * 1000); // 5 min
+                int wait1min = (1 * 60 * 1000); // 1 min
+                int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
+                                                        //Toma la entidad y el listado por primera vez
+                showEntidad();
+                getListDomains();
+                //Muestra las URL(serv/proxy)
+                txtServer.Text = con.LoadServer();
+                textProxy.Text = con.LoadProxy();
+                // Iniciamos el sistema de audio
+                playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
+                playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
+                //Cada 20 horas
+                Timer20HOUR.Interval = wait20hour;
+                Timer20HOUR.Start();
+                //Cada 5 minutos
+                Timer5MIN.Interval = wait5min;
+                Timer5MIN.Start();
+                //Cada 1 minuto
+                Timer1MIN.Interval = wait1min;
+                Timer1MIN.Start();
+                //Reproductor: cada 1seg
+                tPlayer.Start();
+            }
         }
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
@@ -406,10 +414,10 @@ namespace player
         {
             try
             {
-                string ent  = ((Combos)domEntidad.SelectedItem).Value;
-                string alm  = ((Combos)domAlmacen.SelectedItem).Value;
+                string ent = ((Combos)domEntidad.SelectedItem).Value;
+                string alm = ((Combos)domAlmacen.SelectedItem).Value;
                 string pais = ((Combos)domPais.SelectedItem).Value;
-                string reg  = ((Combos)domRegion.SelectedItem).Value;
+                string reg = ((Combos)domRegion.SelectedItem).Value;
                 string prov = ((Combos)domProv.SelectedItem).Value;
                 string shop = ((Combos)domTienda.SelectedItem).Value;
                 //Colocamos cada una de las organizaciones para formar el dominio
@@ -482,7 +490,7 @@ namespace player
             }
             return output;
         }
-        
+
         //Solicita los ficheros de publicidad que deben descargarse
         private void solicitudFicheros()
         {
@@ -501,7 +509,6 @@ namespace player
                     //Modificamos el estado a YES
                     publimsg.UpdateStatus(nombre, @"publi");
                     //Informamos al player de la nueva publicidad
-                    changes_in_pl = true;
                 }
             }
             foreach (string m in publimsg.DownloadMsg())
@@ -513,7 +520,6 @@ namespace player
                     downloadFile(m, @"mensaje", @"MSG/");
                     //Modificamos el estado a YES
                     publimsg.UpdateStatus(m, @"mensaje");
-                    changes_in_pl = true;
                 }
             }
         }
@@ -527,7 +533,7 @@ namespace player
             //TRUE: Usamos el Proxy
             if (con.UseProxy())
             {
-                
+
                 wProxy.Address = new Uri(con.LoadProxy());
                 wCli.Proxy = wProxy;
             }
@@ -559,11 +565,13 @@ namespace player
             {
                 bytes = File.ReadAllBytes(shd.InstaMSG);
 
-                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR){}
+                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
                 else
                 {
                     MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                //Establecemos el volumen de reproductor de instantaneos
+                playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
                 //Bajamos el sonido del reproductor de musica                                                          
                 playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
                 //Reproducimos el instantaneo
@@ -577,18 +585,12 @@ namespace player
         {
             enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
             enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
-            //Tiene lugar cuando hay cambios en la playlist
-            if (changes_in_pl)
+
+
+            if (changes_in_PL)
             {
-                //cargamos una nueva PL
                 crearPL();
-                //comprobamos que la PL de musica está vacía
-                if (playerMusic.PlayListGetCount(0) != 0)
-                {
-                    //Paramos la reproduccion de la PL
-                    playerMusic.PlayListStop(0, false);
-                }
-                changes_in_pl = false;
+                changes_in_PL = false;
             }
             //Cuando acaba la reproduccion de un instantaneo
             if (instaStatus == enumPlayerStatus.SOUND_STOPPED)
@@ -608,13 +610,58 @@ namespace player
                 percentage = position / songduration * 100.00;
                 barStStatus.Value = (int)percentage; // la mostramos en el pBar
             }
-            //Si la PL ha acabado, volvemos a lanzar otra    
+
             if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
             {
-                if (playerMusic.PlayListExecute(0, true) == enumErrorCodes.NOERROR){}
-                else {MessageBox.Show("No se puedo cargar la playlist.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);}
+                if (playlist.Count != 0)
+                {
+                    byte[] bytes = null;
+                    string song = playlist.Peek();
+                    prob.Items.Add("Actual: " + song);
+                    bytes = File.ReadAllBytes(song);
+                    //Si es un fichero encriptado, lo desencriptamos
+                    if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
+                    //Cargamos el fichero en memoria
+                    if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                    else
+                    {
+                        MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    //Reproducimos
+                    playerMusic.PlaySound(0);
+                    //Quitamos la cancion de la PL
+                    playlist.Dequeue();
+                    //Playlist sin canciones
+                    if (playlist.Count == 0)
+                    {
+                        //Creamos otra
+                        crearPL();
+                    }
+                    prob.Items.Add("Siguiente: " + playlist.Peek());
+                }
             }
-        }
+            if (playerStatus == enumPlayerStatus.SOUND_NONE)
+            {
+                if (playlist.Count != 0)
+                {
+                    byte[] bytes = null;
+                    string song = playlist.Peek();
+                    prob.Items.Add("Actual: " + song);
+                    bytes = File.ReadAllBytes(song);
+                    //Si es un fichero encriptado, lo desencriptamos
+                    if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
+                    //Cargamos el fichero en memoria
+                    if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                    else
+                    {
+                        MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    playerMusic.PlaySound(0);
+                    playlist.Dequeue();
+                    prob.Items.Add("Siguiente: " + playlist.Peek());
+                }
+            }
+        } 
         //Informacion de la canción cuando se carga
         private void playerMusic_SoundLoaded(object sender, SoundLoadedEventArgs e)
         {
@@ -622,20 +669,18 @@ namespace player
             playerMusic.SoundInfoGet(0, ref info);
             //Duracion de la canción
             playerMusic.SoundDurationGet(0, ref songduration, false);
-            barStSong.Text = info.strMP3Tag1Title;
+            barStSong.Text = info.strMP3Tag1Artist + " - " + info.strMP3Tag1Title;
         }
         //GENERADOR DE PLAYLIST
         private void crearPL()
         {
-            int pl = 1;
-            short cont = 0;
-            playerMusic.PlayListCreate(0);
+            playlist.Clear();
             prob.Items.Clear();
-
-            //crea el listado de musica + publicidad
+            int pl = 1;
+            //Se añade el listado de musica + publicidad
             foreach (string m in shuffle(shd.Music, rand))
             {
-                playerMusic.PlayListAddItem(0, m, cont);
+                playlist.Enqueue(m);
                 prob.Items.Add(m);
 
                 Tuple<List<string>, int> publi = publimsg.GetPublicidad();
@@ -643,14 +688,13 @@ namespace player
                 {
                     foreach (string p in shuffle(publi.Item1, rand))
                     {
-                        playerMusic.PlayListAddItem(0, "PUBLI/" + p, cont);
+                        playlist.Enqueue("PUBLI/" + p);
                         prob.Items.Add("PUBLI/" + p);
                         break;
                     }
                     pl = 0;
                 }
                 pl++;
-                cont++;
             }
         }
         //Shuffle casero, creado con un random
@@ -681,6 +725,47 @@ namespace player
                 res = false;
             }
             return res;
+        }
+        //Desencripta un fichero .xxx
+        private byte[] decript(byte[] f_num)
+        {
+            for (int i = 0; i < f_num.Length; i++)
+            {
+                f_num[i] ^= KeyCode[i % 8];
+            }
+            return f_num;
+        }
+        //Horario: Desde...
+        private void timeDesde_ValueChanged(object sender, EventArgs e)
+        {
+            string desde = timeDesde.Text;
+            //Se comprueba si existe horario en BD
+            if (hro.ExisteHorario("hora_inicial"))
+            {
+                //existe, modificamos
+                hro.ModificarHorario("hora_inicial", desde);
+            }
+            else
+            {
+                //No existe, insertamos
+                hro.InsertoHorario("hora_inicial", desde);
+            }
+        }
+        //Horario: Hasta...
+        private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
+        {
+            string hasta = timeHasta.Text;
+            //Se comprueba si existe horario en BD
+            if (hro.ExisteHorario("hora_final"))
+            {
+                //existe, modificamos
+                hro.ModificarHorario("hora_final", hasta);
+            }
+            else
+            {
+                //No existe, insertamos
+                hro.InsertoHorario("hora_final", hasta);
+            }
         }
     }
 }

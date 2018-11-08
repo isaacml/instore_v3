@@ -32,8 +32,8 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Inicio));
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Música = new System.Windows.Forms.TabPage();
-            this.prob = new System.Windows.Forms.ListBox();
             this.playerInsta = new AudioDjStudio.AudioDjStudio();
+            this.prob = new System.Windows.Forms.ListBox();
             this.lblListDirMusic = new System.Windows.Forms.Label();
             this.listMusicDirs = new System.Windows.Forms.CheckedListBox();
             this.lblMusicDirs = new System.Windows.Forms.Label();
@@ -54,7 +54,7 @@
             this.trackBarPubli = new System.Windows.Forms.TrackBar();
             this.trackBarMusica = new System.Windows.Forms.TrackBar();
             this.groupHorario = new System.Windows.Forms.GroupBox();
-            this.dateTimePicker1 = new System.Windows.Forms.DateTimePicker();
+            this.timeHasta = new System.Windows.Forms.DateTimePicker();
             this.lblHasta = new System.Windows.Forms.Label();
             this.lblDesde = new System.Windows.Forms.Label();
             this.timeDesde = new System.Windows.Forms.DateTimePicker();
@@ -123,8 +123,8 @@
             // 
             // Música
             // 
-            this.Música.Controls.Add(this.prob);
             this.Música.Controls.Add(this.playerInsta);
+            this.Música.Controls.Add(this.prob);
             this.Música.Controls.Add(this.lblListDirMusic);
             this.Música.Controls.Add(this.listMusicDirs);
             this.Música.Controls.Add(this.lblMusicDirs);
@@ -141,6 +141,15 @@
             this.Música.ToolTipText = "Música";
             this.Música.UseVisualStyleBackColor = true;
             // 
+            // playerInsta
+            // 
+            this.playerInsta.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+            this.playerInsta.LastError = AudioDjStudio.enumErrorCodes.ERR_NOERROR;
+            this.playerInsta.Location = new System.Drawing.Point(573, 323);
+            this.playerInsta.Name = "playerInsta";
+            this.playerInsta.Size = new System.Drawing.Size(48, 48);
+            this.playerInsta.TabIndex = 10;
+            // 
             // prob
             // 
             this.prob.FormattingEnabled = true;
@@ -148,15 +157,6 @@
             this.prob.Name = "prob";
             this.prob.Size = new System.Drawing.Size(670, 43);
             this.prob.TabIndex = 9;
-            // 
-            // playerInsta
-            // 
-            this.playerInsta.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
-            this.playerInsta.LastError = AudioDjStudio.enumErrorCodes.ERR_NOERROR;
-            this.playerInsta.Location = new System.Drawing.Point(625, 323);
-            this.playerInsta.Name = "playerInsta";
-            this.playerInsta.Size = new System.Drawing.Size(48, 48);
-            this.playerInsta.TabIndex = 8;
             // 
             // lblListDirMusic
             // 
@@ -274,7 +274,7 @@
             this.lblMsgContainer.Name = "lblMsgContainer";
             this.lblMsgContainer.Size = new System.Drawing.Size(19, 13);
             this.lblMsgContainer.TabIndex = 9;
-            this.lblMsgContainer.Text = "10";
+            this.lblMsgContainer.Text = "50";
             // 
             // lblPubliContainer
             // 
@@ -330,7 +330,7 @@
             this.trackBarMsg.Size = new System.Drawing.Size(45, 168);
             this.trackBarMsg.TabIndex = 5;
             this.trackBarMsg.TickFrequency = 10;
-            this.trackBarMsg.Value = 10;
+            this.trackBarMsg.Value = 50;
             this.trackBarMsg.Scroll += new System.EventHandler(this.trackBarMsg_Scroll);
             // 
             // trackBarPubli
@@ -361,7 +361,7 @@
             // 
             // groupHorario
             // 
-            this.groupHorario.Controls.Add(this.dateTimePicker1);
+            this.groupHorario.Controls.Add(this.timeHasta);
             this.groupHorario.Controls.Add(this.lblHasta);
             this.groupHorario.Controls.Add(this.lblDesde);
             this.groupHorario.Controls.Add(this.timeDesde);
@@ -372,15 +372,16 @@
             this.groupHorario.TabStop = false;
             this.groupHorario.Text = "Horario";
             // 
-            // dateTimePicker1
+            // timeHasta
             // 
-            this.dateTimePicker1.CustomFormat = "HH:mm";
-            this.dateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker1.Location = new System.Drawing.Point(264, 35);
-            this.dateTimePicker1.Name = "dateTimePicker1";
-            this.dateTimePicker1.ShowUpDown = true;
-            this.dateTimePicker1.Size = new System.Drawing.Size(64, 20);
-            this.dateTimePicker1.TabIndex = 2;
+            this.timeHasta.CustomFormat = "HH:mm";
+            this.timeHasta.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.timeHasta.Location = new System.Drawing.Point(264, 35);
+            this.timeHasta.Name = "timeHasta";
+            this.timeHasta.ShowUpDown = true;
+            this.timeHasta.Size = new System.Drawing.Size(64, 20);
+            this.timeHasta.TabIndex = 2;
+            this.timeHasta.ValueChanged += new System.EventHandler(this.dateTimePicker1_ValueChanged);
             // 
             // lblHasta
             // 
@@ -410,6 +411,7 @@
             this.timeDesde.Size = new System.Drawing.Size(64, 20);
             this.timeDesde.TabIndex = 1;
             this.timeDesde.Value = new System.DateTime(2018, 7, 5, 19, 56, 0, 0);
+            this.timeDesde.ValueChanged += new System.EventHandler(this.timeDesde_ValueChanged);
             // 
             // Configuración
             // 
@@ -762,7 +764,7 @@
         private System.Windows.Forms.DateTimePicker timeDesde;
         private System.Windows.Forms.Label lblHasta;
         private System.Windows.Forms.Label lblDesde;
-        private System.Windows.Forms.DateTimePicker dateTimePicker1;
+        private System.Windows.Forms.DateTimePicker timeHasta;
         private System.Windows.Forms.GroupBox groupVolumen;
         private System.Windows.Forms.Label lblTrackMusic;
         private System.Windows.Forms.TrackBar trackBarMsg;
@@ -795,10 +797,10 @@
         private System.Windows.Forms.ErrorProvider errorAddDom;
         private System.Windows.Forms.Timer Timer1MIN;
         private System.Windows.Forms.Timer Timer20HOUR;
-        private AudioDjStudio.AudioDjStudio playerInsta;
         private System.Windows.Forms.ListBox prob;
         private AudioDjStudio.AudioDjStudio playerMusic;
         private System.Windows.Forms.Timer tPlayer;
+        private AudioDjStudio.AudioDjStudio playerInsta;
     }
 }
 

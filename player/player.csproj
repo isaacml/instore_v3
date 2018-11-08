@@ -72,6 +72,7 @@
     <Compile Include="Connect.cs" />
     <Compile Include="Combos.cs" />
     <Compile Include="Domains.cs" />
+    <Compile Include="Horario.cs" />
     <Compile Include="PubliMsg.cs" />
     <Compile Include="Shared.cs" />
     <Compile Include="Inicio.cs">
