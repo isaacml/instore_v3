@@ -69,5 +69,27 @@ namespace player
                 }
             }
         }
+        //Recoge un horario (formato hora) de la BD
+        public string RecogerHorario(string tipo)
+        {
+            lock (bloqueo)
+            {
+                string hora = "";
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT {0} FROM horario", tipo);
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los ficheros
+                        hora = datos.GetString(datos.GetOrdinal(tipo));
+                    }
+                    connection.Close();
+                }
+                return hora;
+            }
+        }
     }
 }

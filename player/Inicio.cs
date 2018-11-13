@@ -189,10 +189,20 @@ namespace player
             }
             else
             {
+                //Cargamos hora_inicial por primera vez
+                if (hro.ExisteHorario("hora_inicial"))
+                {
+                    timeDesde.Value = Convert.ToDateTime(hro.RecogerHorario("hora_inicial"));
+                }
+                //Cargamos hora_final por primera vez
+                if (hro.ExisteHorario("hora_final"))
+                {
+                    timeHasta.Value = Convert.ToDateTime(hro.RecogerHorario("hora_final"));
+                }
                 int wait5min = (5 * 60 * 1000); // 5 min
                 int wait1min = (1 * 60 * 1000); // 1 min
                 int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
-                                                        //Toma la entidad y el listado por primera vez
+                //Toma la entidad y el listado por primera vez
                 showEntidad();
                 getListDomains();
                 //Muestra las URL(serv/proxy)
@@ -491,7 +501,7 @@ namespace player
             return output;
         }
 
-        //Solicita los ficheros de publicidad que deben descargarse
+        //Descarga los ficheros con estado N
         private void solicitudFicheros()
         {
             foreach (string getpub in publimsg.DownloadPubli())
@@ -507,8 +517,7 @@ namespace player
                     //Descarga del fichero de publicidad
                     downloadFile(nombre, @"publicidad", @"PUBLI/");
                     //Modificamos el estado a YES
-                    publimsg.UpdateStatus(nombre, @"publi");
-                    //Informamos al player de la nueva publicidad
+                    publimsg.UpdateStatus(nombre, "Y", @"publi");
                 }
             }
             foreach (string m in publimsg.DownloadMsg())
@@ -519,7 +528,7 @@ namespace player
                     //Descarga del fichero de publicidad
                     downloadFile(m, @"mensaje", @"MSG/");
                     //Modificamos el estado a YES
-                    publimsg.UpdateStatus(m, @"mensaje");
+                    publimsg.UpdateStatus(m, "Y", @"mensaje");
                 }
             }
         }
@@ -585,8 +594,10 @@ namespace player
         {
             enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
             enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
-
-
+            int now = hour2min(DateTime.Now.ToString("HH:mm"));
+            int min_ini = hour2min(hro.RecogerHorario("hora_inicial"));
+            int min_fin = hour2min(hro.RecogerHorario("hora_final"));
+            //Comprueba si hay cambio en la PL de reproduccion
             if (changes_in_PL)
             {
                 crearPL();
@@ -610,55 +621,58 @@ namespace player
                 percentage = position / songduration * 100.00;
                 barStStatus.Value = (int)percentage; // la mostramos en el pBar
             }
-
-            if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
+            //Se comprueba que el horario está entre el rango de fechas para iniciar la reproduccion
+            if (now >= min_ini && now <= min_fin)
             {
-                if (playlist.Count != 0)
+                if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
                 {
-                    byte[] bytes = null;
-                    string song = playlist.Peek();
-                    prob.Items.Add("Actual: " + song);
-                    bytes = File.ReadAllBytes(song);
-                    //Si es un fichero encriptado, lo desencriptamos
-                    if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
-                    //Cargamos el fichero en memoria
-                    if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
-                    else
+                    if (playlist.Count != 0)
                     {
-                        MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        byte[] bytes = null;
+                        string song = playlist.Peek();
+                        prob.Items.Add("Actual: " + song);
+                        bytes = File.ReadAllBytes(song);
+                        //Si es un fichero encriptado, lo desencriptamos
+                        if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
+                        //Cargamos el fichero en memoria
+                        if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                        else
+                        {
+                            MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        //Reproducimos
+                        playerMusic.PlaySound(0);
+                        //Quitamos la cancion de la PL
+                        playlist.Dequeue();
+                        //Playlist sin canciones
+                        if (playlist.Count == 0)
+                        {
+                            //Creamos otra
+                            crearPL();
+                        }
+                        prob.Items.Add("Siguiente: " + playlist.Peek());
                     }
-                    //Reproducimos
-                    playerMusic.PlaySound(0);
-                    //Quitamos la cancion de la PL
-                    playlist.Dequeue();
-                    //Playlist sin canciones
-                    if (playlist.Count == 0)
-                    {
-                        //Creamos otra
-                        crearPL();
-                    }
-                    prob.Items.Add("Siguiente: " + playlist.Peek());
                 }
-            }
-            if (playerStatus == enumPlayerStatus.SOUND_NONE)
-            {
-                if (playlist.Count != 0)
+                if (playerStatus == enumPlayerStatus.SOUND_NONE)
                 {
-                    byte[] bytes = null;
-                    string song = playlist.Peek();
-                    prob.Items.Add("Actual: " + song);
-                    bytes = File.ReadAllBytes(song);
-                    //Si es un fichero encriptado, lo desencriptamos
-                    if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
-                    //Cargamos el fichero en memoria
-                    if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
-                    else
+                    if (playlist.Count != 0)
                     {
-                        MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        byte[] bytes = null;
+                        string song = playlist.Peek();
+                        prob.Items.Add("Actual: " + song);
+                        bytes = File.ReadAllBytes(song);
+                        //Si es un fichero encriptado, lo desencriptamos
+                        if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
+                        //Cargamos el fichero en memoria
+                        if (playerMusic.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                        else
+                        {
+                            MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        playerMusic.PlaySound(0);
+                        playlist.Dequeue();
+                        if (playlist.Count !=0 ) { prob.Items.Add("Siguiente: " + playlist.Peek()); }
                     }
-                    playerMusic.PlaySound(0);
-                    playlist.Dequeue();
-                    prob.Items.Add("Siguiente: " + playlist.Peek());
                 }
             }
         } 
@@ -735,10 +749,19 @@ namespace player
             }
             return f_num;
         }
+
+        //Convierte una hora (HH:mm) a minutos totales
+        private int hour2min(string hora)
+        {
+            int minutos = 0;
+            string[] data = hora.Split(':');
+            minutos = (Convert.ToInt32(data[0]) * 60) + Convert.ToInt32(data[1]);
+            return minutos;
+        }
         //Horario: Desde...
         private void timeDesde_ValueChanged(object sender, EventArgs e)
         {
-            string desde = timeDesde.Text;
+            string desde = timeDesde.Value.ToString("HH:mm");
             //Se comprueba si existe horario en BD
             if (hro.ExisteHorario("hora_inicial"))
             {
@@ -752,9 +775,9 @@ namespace player
             }
         }
         //Horario: Hasta...
-        private void dateTimePicker1_ValueChanged(object sender, EventArgs e)
+        private void timeHasta_ValueChanged(object sender, EventArgs e)
         {
-            string hasta = timeHasta.Text;
+            string hasta = timeHasta.Value.ToString("HH:mm");
             //Se comprueba si existe horario en BD
             if (hro.ExisteHorario("hora_final"))
             {

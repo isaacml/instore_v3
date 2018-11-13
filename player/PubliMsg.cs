@@ -42,9 +42,32 @@ namespace player
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
         public void GuardarListado(string listado)
         {
+            //Se borran de BD los que no están en el listado
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero FROM publi", connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        int id = datos.GetInt32(datos.GetOrdinal("id"));
+                        string file = datos.GetString(datos.GetOrdinal("fichero"));
+                        //Comprobamos ficheros validos en BD
+                        if (!listado.Contains(file))
+                        {
+                            string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
+                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                            cmd_exc.ExecuteNonQuery();
+                        }
+                    }
+                    connection.Close();
+                }
+            }
+            //Descuartizamos el listado
             string[] lista = Regex.Split(listado, @"\[publi];");
             string output;
-
             //EXISTEN FICHEROS DE PUBLICIDAD 
             if (lista.Length > 1)
             {   //Se comprueba si hay ficheros de mensajes
@@ -123,21 +146,20 @@ namespace player
             }
         }
         //Modifica el estado de publicidad/mensajes
-        public void UpdateStatus(string filename, string tabla)
+        public void UpdateStatus(string filename, string estado, string tabla)
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"UPDATE {0} SET existe='Y' WHERE fichero='{1}';", tabla, filename);
+                    string query = string.Format(@"UPDATE {0} SET existe='{1}' WHERE fichero='{2}';", tabla, estado,filename);
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
                 }
             }
         }
-        
         //Borrar publicidad con dos años de antigüedad
         public void BorrarPublicidad()
         {
@@ -176,6 +198,7 @@ namespace player
                 }
             }
         }
+
         //Gestiona el guardado de publicidad en la base de datos de la tienda (insertado/modificado)
         private void savePubliInBD(bool existe, string filename, string f_ini, string f_fin, string gap)
         {

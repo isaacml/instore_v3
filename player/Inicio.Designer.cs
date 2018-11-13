@@ -381,7 +381,8 @@
             this.timeHasta.ShowUpDown = true;
             this.timeHasta.Size = new System.Drawing.Size(64, 20);
             this.timeHasta.TabIndex = 2;
-            this.timeHasta.ValueChanged += new System.EventHandler(this.dateTimePicker1_ValueChanged);
+            this.timeHasta.Value = new System.DateTime(2018, 11, 8, 12, 0, 0, 0);
+            this.timeHasta.ValueChanged += new System.EventHandler(this.timeHasta_ValueChanged);
             // 
             // lblHasta
             // 
@@ -410,7 +411,7 @@
             this.timeDesde.ShowUpDown = true;
             this.timeDesde.Size = new System.Drawing.Size(64, 20);
             this.timeDesde.TabIndex = 1;
-            this.timeDesde.Value = new System.DateTime(2018, 7, 5, 19, 56, 0, 0);
+            this.timeDesde.Value = new System.DateTime(2018, 11, 8, 10, 0, 0, 0);
             this.timeDesde.ValueChanged += new System.EventHandler(this.timeDesde_ValueChanged);
             // 
             // Configuración
