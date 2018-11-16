@@ -19,7 +19,7 @@ namespace player
         }
 
         //Existencia de hora en bd
-        public bool ExisteHorario(string tipo)
+        public bool ExisteHorario()
         {
             lock (bloqueo)
             {
@@ -27,7 +27,28 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT {0} FROM horario", tipo);
+                    string query = string.Format(@"SELECT * FROM horario");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    if (datos.StepCount == 0)
+                    {
+                        existe = false;
+                    }
+                    connection.Close();
+                }
+                return existe;
+            }
+        }
+        //Existencia datos en horario auxilar
+        public bool ExisteAuxiliar()
+        {
+            lock (bloqueo)
+            {
+                bool existe = true;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT * FROM aux");
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     if (datos.StepCount == 0)
@@ -40,14 +61,29 @@ namespace player
             }
         }
         //Se encarga de insertar un nuevo horario
-        public void InsertoHorario(string tipo, string hora)
+        public void InsertoHorario(string hora_inicial, string hora_final)
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"INSERT INTO horario ({0}) VALUES ('{1}');", tipo, hora);
+                    string query = string.Format(@"INSERT INTO horario ('hora_inicial', 'hora_final') VALUES ('{0}', '{1}');", hora_inicial, hora_final);
+                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                    cmd_exc.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+        }
+        //Insertamos horario en mins (tabla auxiliar)
+        public void InsertoHoraAux(int hora_inicial, int hora_final)
+        {
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"INSERT INTO aux ('hora_inicial', 'hora_final') VALUES ({0}, {1});", hora_inicial, hora_final);
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -55,14 +91,29 @@ namespace player
             }
         }
         //Se encarga de modificar un horario existente
-        public void ModificarHorario(string tipo, string hora)
+        public void ModificarHorario(string hora_inicial, string hora_final)
         {
             lock (bloqueo)
             {
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"UPDATE horario SET {0}='{1}'", tipo, hora);
+                    string query = string.Format(@"UPDATE horario SET hora_inicial='{0}', hora_final='{1}'", hora_inicial, hora_final);
+                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                    cmd_exc.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+        }
+        //Borrar tabla auxiliar
+        public void BorrarAuxiliar()
+        {
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"DELETE FROM aux");
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -70,26 +121,66 @@ namespace player
             }
         }
         //Recoge un horario (formato hora) de la BD
-        public string RecogerHorario(string tipo)
+        public Tuple<string, string> RecogerHorario()
         {
             lock (bloqueo)
             {
-                string hora = "";
+                string h_ini = "";
+                string h_fin = "";
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT {0} FROM horario", tipo);
+                    string query = string.Format(@"SELECT hora_inicial, hora_final FROM horario");
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
                         //Recogemos los ficheros
-                        hora = datos.GetString(datos.GetOrdinal(tipo));
+                        h_ini = datos.GetString(datos.GetOrdinal("hora_inicial"));
+                        h_fin = datos.GetString(datos.GetOrdinal("hora_final"));
                     }
                     connection.Close();
                 }
-                return hora;
+                return new Tuple<string, string>(h_ini, h_fin);
             }
+        }
+        //Calcula con la tabla auxilar si comienza la reproduccion
+        public bool HorarioReproduccion()
+        {
+            lock (bloqueo)
+            {
+                bool sol = false;
+                //hora actual
+                int now = Hour2min(DateTime.Now.ToString("HH:mm"));
+
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT hora_inicial, hora_final FROM aux");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los ficheros
+                        int h_ini = datos.GetInt32(datos.GetOrdinal("hora_inicial"));
+                        int h_fin = datos.GetInt32(datos.GetOrdinal("hora_final"));
+                        if (now > h_ini && now < h_fin)
+                        {
+                            sol = sol || true;
+                        }
+                    }
+                    connection.Close();
+                }
+                return sol;
+            }
+        }
+        //Convierte una hora (HH:mm) a minutos totales
+        public int Hour2min(string hora)
+        {
+            int minutos = 0;
+            string[] data = hora.Split(':');
+            minutos = (Convert.ToInt32(data[0]) * 60) + Convert.ToInt32(data[1]);
+            return minutos;
         }
     }
 }

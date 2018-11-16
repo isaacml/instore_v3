@@ -13,9 +13,11 @@ namespace player
         private SQLiteConnection connection;
         private Object bloqueo = new Object();
         private string string_connection;
+        WebClient wCli;
 
         public Connect()
         {
+            wCli = new WebClient();
             string_connection = @"Data Source=shop.db; Version=3;";
         }
 
@@ -134,6 +136,23 @@ namespace player
                 output = true;
             }
             return output;
+        }
+        //Determina si podemos conectar con el servidor o no
+        public bool CanConnectWithServer(string server)
+        {
+            bool con;
+            try
+            { 
+                using (wCli.OpenRead(server))
+                {
+                    con = true;
+                }
+            }
+            catch
+            {
+                con = false;
+            }
+            return con;
         }
     }
 }

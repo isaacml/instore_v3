@@ -31,6 +31,7 @@ namespace player
         private bool changes_in_PL = false;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         Queue<string> playlist = new Queue<string>();
+        private string publi_folder = @"PUBLI/";
 
         public Inicio()
         {
@@ -189,25 +190,27 @@ namespace player
             }
             else
             {
-                //Cargamos hora_inicial por primera vez
-                if (hro.ExisteHorario("hora_inicial"))
+                //Cargamos horario por primera vez
+                if (hro.ExisteHorario())
                 {
-                    timeDesde.Value = Convert.ToDateTime(hro.RecogerHorario("hora_inicial"));
+                    Tuple<string, string> horario = hro.RecogerHorario();
+                    timeDesde.Value = Convert.ToDateTime(horario.Item1);
+                    timeHasta.Value = Convert.ToDateTime(horario.Item2);
                 }
-                //Cargamos hora_final por primera vez
-                if (hro.ExisteHorario("hora_final"))
-                {
-                    timeHasta.Value = Convert.ToDateTime(hro.RecogerHorario("hora_final"));
-                }
-                int wait5min = (5 * 60 * 1000); // 5 min
-                int wait1min = (1 * 60 * 1000); // 1 min
-                int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
-                //Toma la entidad y el listado por primera vez
-                showEntidad();
-                getListDomains();
                 //Muestra las URL(serv/proxy)
                 txtServer.Text = con.LoadServer();
                 textProxy.Text = con.LoadProxy();
+                //Toma la entidad por primera vez
+                showEntidad();
+                //Toma el listado por primera vez
+                if (con.CanConnectWithServer(con.LoadServer()))
+                {
+                    getListDomains();
+                }
+                //tiempos
+                int wait5min = (5 * 60 * 1000); // 5 min
+                int wait1min = (1 * 60 * 1000); // 1 min
+                int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
                 // Iniciamos el sistema de audio
                 playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
                 playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
@@ -227,17 +230,23 @@ namespace player
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
             Timer5MIN.Stop();
-            //Tomamos el estado
-            getStatus();
-            //Solicitud (publi/msg) por dominio
-            getListDomains();
+            if (con.CanConnectWithServer(con.LoadServer()))
+            {
+                //Muestra el estado
+                getStatus();
+                //Solicitud (publi/msg) por dominio
+                getListDomains();
+            }
             Timer5MIN.Start();
         }
         private void Timer1MIN_Tick(object sender, EventArgs e)
         {
             Timer1MIN.Stop();
-            //Solicidud de ficheros publi/msg
-            solicitudFicheros();
+            if (con.CanConnectWithServer(con.LoadServer()))
+            {
+                //Solicidud de ficheros publi/msg
+                solicitudFicheros();
+            }
             Timer1MIN.Start();
         }
         private void Timer20HOUR_Tick(object sender, EventArgs e)
@@ -256,27 +265,33 @@ namespace player
             {
                 listBoxDom.Items.Add(d);
             }
-            //Formamos la cadena de dominio
-            string domains = doms.CadenaDominios();
-            //Peticion de listado por dominios
-            string res = serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=" + domains));
-            //Enviamos listado(PubliMsg.cs) para realizar el guardado
-            publimsg.GuardarListado(res);
+            //Peticion de listado: por cadena de dominios
+            string res = serverConnection(HttpUtility.UrlPathEncode("/acciones.cgi?action=send_domains&dominios=" + doms.CadenaDominios()));
+            if (res != "")
+            {
+                //Enviamos listado(PubliMsg.cs) para realizar el guardado
+                //Se comprueba si hay cambio en la PL
+                if (publimsg.GuardarListado(res))
+                {
+                    changes_in_PL = true;
+                }
+            }
         }
         //Muestra la entidad (zona de configuración)
         private void showEntidad()
         {
             errorAddDom.Clear();
             BindingList<Combos> save_ent = new BindingList<Combos>();
-            //Leemos fichero de configuración
-            string[] readText = File.ReadAllLines(file_config, Encoding.UTF8);
-            foreach (string s in readText)
+            //Leemos la primera linea del fichero de configuración
+            string entidad = File.ReadLines(file_config).First();
+            //Obtenemos solo el nombre de la entidad
+            string[] dat_ent = entidad.Split('=');
+            //Se guarda el nombre de entidad en el obj
+            shd.Entidad = dat_ent[1];
+            //Guardamos el id de entidad
+            string id = serverConnection(@"/transf_orgs_vs.cgi?action=entidad&nom_ent=" + shd.Entidad);
+            if (id != "")
             {
-                string[] dat_ent = s.Split('=');
-                //Se guarda el nombre de entidad en el obj
-                shd.Entidad = dat_ent[1];
-                //Guardamos el id de entidad
-                string id = serverConnection(@"/transf_orgs_vs.cgi?action=entidad&nom_ent=" + shd.Entidad);
                 shd.IDEntidad = id;
                 save_ent.Add(new Combos(shd.IDEntidad, shd.Entidad));
             }
@@ -288,7 +303,7 @@ namespace player
         private void domEntidad_SelectedIndexChanged(object sender, EventArgs e)
         {
             errorAddDom.Clear();
-            showEntidad();
+            //showEntidad();
             BindingList<Combos> save_alm = new BindingList<Combos>();
             string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
             if (query != "")
@@ -315,29 +330,32 @@ namespace player
         //Cambio de Almacen(combobox de configuracion)
         private void domAlmacen_SelectedIndexChanged(object sender, EventArgs e)
         {
-            errorAddDom.Clear();
-            BindingList<Combos> save_pais = new BindingList<Combos>();
-            string query = serverConnection(@"/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
-            if (query != "")
+            if (domAlmacen.SelectedValue.ToString() != "")
             {
-                string[] pais = query.Split(';');
-                foreach (string p in pais)
+                errorAddDom.Clear();
+                BindingList<Combos> save_pais = new BindingList<Combos>();
+                string query = serverConnection(@"/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
+                if (query != "")
                 {
-                    if (p != "")
+                    string[] pais = query.Split(';');
+                    foreach (string p in pais)
                     {
-                        //Separamos los distintos paises
-                        string[] paises = Regex.Split(p, @"\<=>");
-                        save_pais.Add(new Combos(paises[0], paises[1]));
+                        if (p != "")
+                        {
+                            //Separamos los distintos paises
+                            string[] paises = Regex.Split(p, @"\<=>");
+                            save_pais.Add(new Combos(paises[0], paises[1]));
+                        }
                     }
                 }
+                else
+                {
+                    save_pais.Add(new Combos("", ""));
+                }
+                domPais.DataSource = save_pais;
+                domPais.DisplayMember = "Value";
+                domPais.ValueMember = "ID";
             }
-            else
-            {
-                save_pais.Add(new Combos("", ""));
-            }
-            domPais.DataSource = save_pais;
-            domPais.DisplayMember = "Value";
-            domPais.ValueMember = "ID";
         }
         //Cambio de Pais(combobox de configuracion)
         private void domPais_SelectedIndexChanged(object sender, EventArgs e)
@@ -504,33 +522,45 @@ namespace player
         //Descarga los ficheros con estado N
         private void solicitudFicheros()
         {
-            foreach (string getpub in publimsg.DownloadPubli())
+            //Ejecutamos la solicitud de ficheros
+            publimsg.PubliForDown();
+            //Miramos los ficheros para la discarga
+            if (publimsg.DownloadPubli().Count != 0)
             {
-                string[] pub = Regex.Split(getpub, @"\[]");
-                string nombre = pub[0]; //Nombre del Fichero
-                string f_ini = pub[1]; //Fecha de Inicio
-                string gap = pub[2]; //Fecha de Inicio
-                //Envio de peticion (publi_msg.cgi)
-                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}&fecha_ini={1}&gap={2}", nombre, f_ini, gap));
-                if (res == "Descarga")
+                foreach (string getpub in publimsg.DownloadPubli())
                 {
-                    //Descarga del fichero de publicidad
-                    downloadFile(nombre, @"publicidad", @"PUBLI/");
-                    //Modificamos el estado a YES
-                    publimsg.UpdateStatus(nombre, "Y", @"publi");
+                    string[] pub = Regex.Split(getpub, @"\[]");
+                    string nombre = pub[0]; //Nombre del Fichero
+                    string f_ini = pub[1]; //Fecha de Inicio
+                    string gap = pub[2]; //Fecha de Inicio
+                                         //Envio de peticion (publi_msg.cgi)
+                    string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}&fecha_ini={1}&gap={2}", nombre, f_ini, gap));
+                    if (res == "Descarga")
+                    {
+                        //Descarga del fichero de publicidad
+                        downloadFile(nombre, @"publicidad", publi_folder);
+                        //Modificamos el estado a YES
+                        publimsg.UpdateStatus(nombre, "Y", @"publi");
+                        //Cambios en la PL
+                        changes_in_PL = true;
+                    }
                 }
             }
-            foreach (string m in publimsg.DownloadMsg())
+            if (publimsg.DownloadMsg().Count != 0)
             {
-                string res = serverConnection(string.Format(@"/publi_msg.cgi?action=MsgFiles&existencia=N&fichero={0}", m));
-                if (res == "Descarga")
+                foreach (string m in publimsg.DownloadMsg())
                 {
-                    //Descarga del fichero de publicidad
-                    downloadFile(m, @"mensaje", @"MSG/");
-                    //Modificamos el estado a YES
-                    publimsg.UpdateStatus(m, "Y", @"mensaje");
+                    string res = serverConnection(string.Format(@"/publi_msg.cgi?action=MsgFiles&existencia=N&fichero={0}", m));
+                    if (res == "Descarga")
+                    {
+                        //Descarga del fichero de publicidad
+                        downloadFile(m, @"mensaje", @"MSG/");
+                        //Modificamos el estado a YES
+                        publimsg.UpdateStatus(m, "Y", @"mensaje");
+                    }
                 }
             }
+  
         }
         //Encargado de la descarga de ficheros de publicidad y mensajes
         private void downloadFile(string fichero, string tipo, string carpeta)
@@ -594,9 +624,7 @@ namespace player
         {
             enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
             enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
-            int now = hour2min(DateTime.Now.ToString("HH:mm"));
-            int min_ini = hour2min(hro.RecogerHorario("hora_inicial"));
-            int min_fin = hour2min(hro.RecogerHorario("hora_final"));
+
             //Comprueba si hay cambio en la PL de reproduccion
             if (changes_in_PL)
             {
@@ -621,8 +649,8 @@ namespace player
                 percentage = position / songduration * 100.00;
                 barStStatus.Value = (int)percentage; // la mostramos en el pBar
             }
-            //Se comprueba que el horario está entre el rango de fechas para iniciar la reproduccion
-            if (now >= min_ini && now <= min_fin)
+            //Comprueba que el horario está entre el rango de fechas
+            if (hro.HorarioReproduccion())
             {
                 if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
                 {
@@ -631,6 +659,18 @@ namespace player
                         byte[] bytes = null;
                         string song = playlist.Peek();
                         prob.Items.Add("Actual: " + song);
+                        //Si la cancion que toca es publicidad
+                        if (song.Contains(publi_folder))
+                        {
+                            //Tomamos el volumen del trackbar de publicidad
+                            playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
+                        }
+                        else
+                        {
+                            //Tomamos el volumen del trackbar de música
+                            playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                        }
+                        //Leemos los bytes de la cancion
                         bytes = File.ReadAllBytes(song);
                         //Si es un fichero encriptado, lo desencriptamos
                         if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
@@ -675,6 +715,11 @@ namespace player
                     }
                 }
             }
+            else
+            {
+                barStStatus.Value = 0;
+                barStSong.Text = "";
+            }
         } 
         //Informacion de la canción cuando se carga
         private void playerMusic_SoundLoaded(object sender, SoundLoadedEventArgs e)
@@ -702,8 +747,8 @@ namespace player
                 {
                     foreach (string p in shuffle(publi.Item1, rand))
                     {
-                        playlist.Enqueue("PUBLI/" + p);
-                        prob.Items.Add("PUBLI/" + p);
+                        playlist.Enqueue(publi_folder + p);
+                        prob.Items.Add(publi_folder + p);
                         break;
                     }
                     pl = 0;
@@ -750,44 +795,95 @@ namespace player
             return f_num;
         }
 
-        //Convierte una hora (HH:mm) a minutos totales
-        private int hour2min(string hora)
-        {
-            int minutos = 0;
-            string[] data = hora.Split(':');
-            minutos = (Convert.ToInt32(data[0]) * 60) + Convert.ToInt32(data[1]);
-            return minutos;
-        }
+        
         //Horario: Desde...
         private void timeDesde_ValueChanged(object sender, EventArgs e)
         {
+            //TABLA HORARIO
             string desde = timeDesde.Value.ToString("HH:mm");
+            string hasta = timeHasta.Value.ToString("HH:mm");
             //Se comprueba si existe horario en BD
-            if (hro.ExisteHorario("hora_inicial"))
+            if (hro.ExisteHorario())
             {
                 //existe, modificamos
-                hro.ModificarHorario("hora_inicial", desde);
+                hro.ModificarHorario(desde, hasta);
             }
             else
             {
                 //No existe, insertamos
-                hro.InsertoHorario("hora_inicial", desde);
+                hro.InsertoHorario(desde, hasta);
+            }
+            //TABLA AUXILIAR
+            int d = hro.Hour2min(desde);
+            int h = hro.Hour2min(hasta);
+            //Desde.. Hasta.. (para nuestro programa)
+            if (d > h)
+            {
+                //Hay datos en aux
+                if (hro.ExisteAuxiliar())
+                {
+                    //los borramos
+                    hro.BorrarAuxiliar();
+                }
+                //Insertamos los nuevos datos aux
+                hro.InsertoHoraAux(d, 1439); //Desde
+                hro.InsertoHoraAux(0, h); //Hasta
+            }
+            else
+            {
+                //Hay datos en aux
+                if (hro.ExisteAuxiliar())
+                {
+                    //los borramos
+                    hro.BorrarAuxiliar();
+                }
+                //Insertamos los nuevos datos aux
+                hro.InsertoHoraAux(d, h);
             }
         }
         //Horario: Hasta...
         private void timeHasta_ValueChanged(object sender, EventArgs e)
         {
+            //TABLA HORARIO
+            string desde = timeDesde.Value.ToString("HH:mm");
             string hasta = timeHasta.Value.ToString("HH:mm");
             //Se comprueba si existe horario en BD
-            if (hro.ExisteHorario("hora_final"))
+            if (hro.ExisteHorario())
             {
                 //existe, modificamos
-                hro.ModificarHorario("hora_final", hasta);
+                hro.ModificarHorario(desde, hasta);
             }
             else
             {
                 //No existe, insertamos
-                hro.InsertoHorario("hora_final", hasta);
+                hro.InsertoHorario(desde, hasta);
+            }
+            //TABLA AUXILIAR
+            int d = hro.Hour2min(desde);
+            int h = hro.Hour2min(hasta);
+            //Desde.. Hasta.. (para nuestro programa)
+            if (d > h)
+            {
+                //Hay datos en aux
+                if (hro.ExisteAuxiliar())
+                {
+                    //los borramos
+                    hro.BorrarAuxiliar();
+                }
+                //Insertamos los nuevos datos aux
+                hro.InsertoHoraAux(d, 1439); //Desde
+                hro.InsertoHoraAux(0, h); //Hasta
+            }
+            else
+            {
+                //Hay datos en aux
+                if (hro.ExisteAuxiliar())
+                {
+                    //los borramos
+                    hro.BorrarAuxiliar();
+                }
+                //Insertamos los nuevos datos aux
+                hro.InsertoHoraAux(d, h);
             }
         }
     }

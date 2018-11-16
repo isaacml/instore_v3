@@ -32,7 +32,7 @@ namespace player
         //Publicidad que tiene que descargarse la tienda
         public List<string> DownloadPubli()
         {
-            return publiForDown();
+            return pfordown;
         }
         //Mensajes que tiene que descargarse la tienda
         public List<string> DownloadMsg()
@@ -40,8 +40,10 @@ namespace player
             return msgForDown();
         }
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
-        public void GuardarListado(string listado)
+        public bool GuardarListado(string listado)
         {
+            //Informamos de cambios en la playlist
+            bool changes_in_PL = false;
             //Se borran de BD los que no están en el listado
             lock (bloqueo)
             {
@@ -60,6 +62,9 @@ namespace player
                             string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
                             SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                             cmd_exc.ExecuteNonQuery();
+                            //Borramos fichero de la carpeta publicidad
+                            File.Delete(dir_publi + file);
+                            changes_in_PL = true;
                         }
                     }
                     connection.Close();
@@ -144,6 +149,7 @@ namespace player
                     }
                 }
             }
+            return changes_in_PL;
         }
         //Modifica el estado de publicidad/mensajes
         public void UpdateStatus(string filename, string estado, string tabla)
@@ -434,10 +440,11 @@ namespace player
             }
         }
         //Recoge publicidad con el estado(N) y los guarda en un listado para la descarga
-        private List<string> publiForDown()
+        public void PubliForDown()
         {
             lock (bloqueo)
             {
+                pfordown.Clear();
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
@@ -454,7 +461,6 @@ namespace player
                     }
                     connection.Close();
                 }
-                return pfordown;
             }
         }
         //Recoge mensajes con el estado(NO) y los guarda en un listado para la descarga
