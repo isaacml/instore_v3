@@ -295,6 +295,11 @@ namespace player
                 shd.IDEntidad = id;
                 save_ent.Add(new Combos(shd.IDEntidad, shd.Entidad));
             }
+            else
+            {
+                shd.IDEntidad = "";
+                save_ent.Add(new Combos("", shd.Entidad));
+            }
             domEntidad.DataSource = save_ent;
             domEntidad.DisplayMember = "Value";
             domEntidad.ValueMember = "ID";
@@ -303,25 +308,35 @@ namespace player
         private void domEntidad_SelectedIndexChanged(object sender, EventArgs e)
         {
             errorAddDom.Clear();
-            //showEntidad();
             BindingList<Combos> save_alm = new BindingList<Combos>();
-            string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
-            if (query != "")
+            //Tomamos la entidad
+            showEntidad();
+            //Si el identificador es distinto de vacio
+            if (shd.IDEntidad != "")
             {
-                string[] alm = query.Split(';');
-                foreach (string alms in alm)
+                string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
+                if (query != "")
                 {
-                    if (alms != "")
+                    string[] alm = query.Split(';');
+                    foreach (string alms in alm)
                     {
-                        //Separamos los distintos almacenes
-                        string[] almacenes = Regex.Split(alms, @"\<=>");
-                        save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                        if (alms != "")
+                        {
+                            //Separamos los distintos almacenes
+                            string[] almacenes = Regex.Split(alms, @"\<=>");
+                            save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                        }
                     }
                 }
             }
-            else
+            else //No hay entidad
             {
+                //Reseteamos los selects a vacios
                 save_alm.Add(new Combos("", ""));
+                domPais.DataSource = save_alm;
+                domRegion.DataSource = save_alm;
+                domProv.DataSource = save_alm;
+                domTienda.DataSource = save_alm;
             }
             domAlmacen.DataSource = save_alm;
             domAlmacen.DisplayMember = "Value";
