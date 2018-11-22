@@ -18,7 +18,11 @@ namespace player
 {
     public partial class Inicio : Form
     {
+        private double songduration = 0;
+        private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         private string file_config = "config.ini";
+        private string publi_folder = @"PUBLI/";
+        private string msg_folder = @"MSG/";
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private Connect con = new Connect();
@@ -26,12 +30,9 @@ namespace player
         private Domains doms = new Domains();
         private PubliMsg publimsg = new PubliMsg();
         private Random rand = new Random();
-        private bool st_salida = false;  //Evalua la salida del programa
-        private double songduration = 0;
-        private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         Queue<string> playlist = new Queue<string>();
-        private string publi_folder = @"PUBLI/";
-        private string msg_folder = @"MSG/";
+        //Evalua la salida del programa
+        private bool st_salida = false;  
         //Evalua si hay cambio en la playlist
         private bool changes_in_PL = false;
         //Evalua el estado de la tienda: activada o bloqueada
@@ -223,14 +224,10 @@ namespace player
                 //tiempos
                 int wait5min = (5 * 60 * 1000); // 5 min
                 int wait1min = (1 * 60 * 1000); // 1 min
-                int wait20hour = (20 * 60 * 60 * 1000); // 20 hours
                 // Iniciamos el sistema de audio
                 playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
                 playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
                 playerMsgAuto.InitSoundSystem(1, 0, 0, 0, 0, -1);
-                //Cada 20 horas
-                Timer20HOUR.Interval = wait20hour;
-                Timer20HOUR.Start();
                 //Cada 5 minutos
                 Timer5MIN.Interval = wait5min;
                 Timer5MIN.Start();
@@ -270,13 +267,6 @@ namespace player
                 solicitudFicheros();
             }
             Timer1MIN.Start();
-        }
-        private void Timer20HOUR_Tick(object sender, EventArgs e)
-        {
-            Timer20HOUR.Stop();
-            //Borramos los ficheros antiguos
-            publimsg.BorrarPublicidad();
-            Timer20HOUR.Start();
         }
         //Solicitud de publi/msg, guardado de archivos en BD
         private void getListDomains()
@@ -954,6 +944,14 @@ namespace player
             playerMusic.SoundDurationGet(0, ref songduration, false);
             barStSong.Text = info.strMP3Tag1Artist + " - " + info.strMP3Tag1Title;
         }
+        //Cuando se carga un mensaje automatico
+        private void playerMsgAuto_SoundLoaded(object sender, SoundLoadedEventArgs e)
+        {
+            //Establecemos el volumen para los msg auto                                                      
+            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+            //Bajamos el sonido del reproductor de musica                                                          
+            playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
+        }
         //Determina si un fichero es o no de publicidad
         private bool isPubli(string song)
         {
@@ -965,14 +963,6 @@ namespace player
             }
             //Sino false
             return output;
-        }
-        //Cuando se carga un mensaje automatico
-        private void playerMsgAuto_SoundLoaded(object sender, SoundLoadedEventArgs e)
-        {
-            //Establecemos el volumen para los msg auto                                                      
-            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
-            //Bajamos el sonido del reproductor de musica                                                          
-            playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
         }
     }
 }

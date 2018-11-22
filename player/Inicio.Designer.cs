@@ -91,7 +91,6 @@
             this.Timer5MIN = new System.Windows.Forms.Timer(this.components);
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
-            this.Timer20HOUR = new System.Windows.Forms.Timer(this.components);
             this.tPlayer = new System.Windows.Forms.Timer(this.components);
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
@@ -701,10 +700,6 @@
             // 
             this.Timer1MIN.Tick += new System.EventHandler(this.Timer1MIN_Tick);
             // 
-            // Timer20HOUR
-            // 
-            this.Timer20HOUR.Tick += new System.EventHandler(this.Timer20HOUR_Tick);
-            // 
             // tPlayer
             // 
             this.tPlayer.Interval = 1000;
@@ -809,7 +804,6 @@
         private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
         private System.Windows.Forms.Timer Timer1MIN;
-        private System.Windows.Forms.Timer Timer20HOUR;
         private System.Windows.Forms.ListBox prob;
         private AudioDjStudio.AudioDjStudio playerMusic;
         private System.Windows.Forms.Timer tPlayer;

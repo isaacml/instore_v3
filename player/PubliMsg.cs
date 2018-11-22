@@ -141,45 +141,6 @@ namespace player
                 }
             }
         }
-        //Borrar publicidad con dos años de antigüedad
-        public void BorrarPublicidad()
-        {
-            lock (bloqueo)
-            {
-                int year = DateTime.Now.Year;
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero, fecha_fin FROM publi", connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        //Recogemos los datos
-                        int id = datos.GetInt32(datos.GetOrdinal("id"));
-                        string name = datos.GetString(datos.GetOrdinal("fichero"));
-                        string f_fin = datos.GetString(datos.GetOrdinal("fecha_fin"));
-                        int only_year_fin = Convert.ToInt32(f_fin.Substring(0, 4));
-                        //Si han pasado 2 años de antigüedad
-                        if (only_year_fin <= year - 2)
-                        {
-                            //Borramos la publicidad de base de datos
-                            using (connection = new SQLiteConnection(string_connection))
-                            {
-                                connection.Open();
-                                string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
-                                SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                                cmd_exc.ExecuteNonQuery();
-                                connection.Close();
-                            }
-                            //Borramos fichero de la carpeta publicidad
-                            File.Delete(dir_publi + name);
-                        }
-                    }
-                    connection.Close();
-                }
-            }
-        }
-
         //Gestiona el guardado de publicidad en la base de datos de la tienda (insertado/modificado)
         private void savePubliInBD(bool existe, string filename, string f_ini, string f_fin, string gap)
         {
