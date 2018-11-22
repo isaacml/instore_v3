@@ -37,39 +37,14 @@ namespace player
         //Mensajes que tiene que descargarse la tienda
         public List<string> DownloadMsg()
         {
-            return msgForDown();
+            return mfordown;
         }
         //Recoge el listado de publicidad y mensajes y los guarda en la base de datos
         public bool GuardarListado(string listado)
         {
-            //Informamos de cambios en la playlist
-            bool changes_in_PL = false;
-            //Se borran de BD los que no están en el listado
-            lock (bloqueo)
-            {
-                using (connection = new SQLiteConnection(string_connection))
-                {
-                    connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero FROM publi", connection);
-                    SQLiteDataReader datos = cmd.ExecuteReader();
-                    while (datos.Read())
-                    {
-                        int id = datos.GetInt32(datos.GetOrdinal("id"));
-                        string file = datos.GetString(datos.GetOrdinal("fichero"));
-                        //Comprobamos ficheros validos en BD
-                        if (!listado.Contains(file))
-                        {
-                            string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
-                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
-                            cmd_exc.ExecuteNonQuery();
-                            //Borramos fichero de la carpeta publicidad
-                            File.Delete(dir_publi + file);
-                            changes_in_PL = true;
-                        }
-                    }
-                    connection.Close();
-                }
-            }
+            //Se borran de BD los que no están en el listado e informamos de los cmabios
+            bool changes_in_PL = existPubInList(listado);
+            existMsgInList(listado);
             //Descuartizamos el listado
             string[] lista = Regex.Split(listado, @"\[publi];");
             string output;
@@ -457,17 +432,18 @@ namespace player
                         string fecha_ini = datos.GetString(datos.GetOrdinal("fecha_ini"));
                         int gap = datos.GetInt32(datos.GetOrdinal("gap"));
                         //Guarda en listado de publicidad
-                        pfordown.Add(string.Format("{0}[]{1}[]{2}[]", fichero, fecha_ini, gap));
+                        pfordown.Add(string.Format("{0}[]{1}[]{2}", fichero, fecha_ini, gap));
                     }
                     connection.Close();
                 }
             }
         }
         //Recoge mensajes con el estado(NO) y los guarda en un listado para la descarga
-        private List<string> msgForDown()
+        public void MsgForDown()
         {
             lock (bloqueo)
             {
+                mfordown.Clear();
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
@@ -475,14 +451,13 @@ namespace player
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
-                        //Recogemos los ficheros
+                        //Recogemos el nombre del fichero
                         string fichero = datos.GetString(datos.GetOrdinal("fichero"));
                         //Guarda en listado de mensajes
                         mfordown.Add(fichero);
                     }
                     connection.Close();
                 }
-                return mfordown;
             }
         }
         //Recoge la publicidad diaria con estado en "Y"
@@ -532,23 +507,90 @@ namespace player
         {
             lock (bloqueo)
             {
+                int fecha_actual = Convert.ToInt32(DateTime.Now.ToString("yyyyMMdd"));
                 List<string> mensajes = new List<string>();
                 mensajes.Clear();
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero FROM mensaje WHERE existe='Y'", connection);
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT fichero, fecha_ini, fecha_fin, playtime FROM mensaje WHERE existe='Y'", connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())
                     {
-                        //Recogemos los ficheros
+                        //Recogemos datos
                         string fichero = datos.GetString(datos.GetOrdinal("fichero"));
-                        //Guardamos en el listado de publicidad
-                        mensajes.Add(fichero);
+                        int f_ini = Convert.ToInt32(datos.GetString(datos.GetOrdinal("fecha_ini")));
+                        int f_fin = Convert.ToInt32(datos.GetString(datos.GetOrdinal("fecha_fin")));
+                        string playtime = datos.GetString(datos.GetOrdinal("playtime"));
+                        //Obtenemos la publicidad entre el rango de fechas
+                        if (f_ini <= fecha_actual && f_fin >= fecha_actual)
+                        {
+                            //Guardamos en el listado de publicidad
+                            mensajes.Add(string.Format("{0}[]{1}", fichero, playtime));
+                        }
                     }
                     connection.Close();
                 }
                 return mensajes;
+            }
+        }
+        //Comprueba si existe la publicidad en el listado
+        private bool existPubInList(string listado)
+        {
+            lock (bloqueo)
+            {
+                bool res =  false;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero FROM publi", connection);
+                    SQLiteDataReader publi = cmd.ExecuteReader();
+                    while (publi.Read())
+                    {
+                        int id = publi.GetInt32(publi.GetOrdinal("id"));
+                        string file = publi.GetString(publi.GetOrdinal("fichero"));
+                        //Comprobamos ficheros validos en BD
+                        if (!listado.Contains(file))
+                        {
+                            string query = string.Format(@"DELETE FROM publi WHERE id={0}", id);
+                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                            cmd_exc.ExecuteNonQuery();
+                            //Borramos fichero de la carpeta publicidad
+                            File.Delete(dir_publi + file);
+                            res = true;
+                        }
+                    }
+                    connection.Close();
+                }
+                return res;
+            }
+        }
+        //Comprueba si existe mensajes en el listado
+        private void existMsgInList(string listado)
+        {
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    SQLiteCommand cmd = new SQLiteCommand(@"SELECT id, fichero FROM mensaje", connection);
+                    SQLiteDataReader msg = cmd.ExecuteReader();
+                    while (msg.Read())
+                    {
+                        int id = msg.GetInt32(msg.GetOrdinal("id"));
+                        string file = msg.GetString(msg.GetOrdinal("fichero"));
+                        //Comprobamos ficheros validos en BD
+                        if (!listado.Contains(file))
+                        {
+                            string query = string.Format(@"DELETE FROM mensaje WHERE id={0}", id);
+                            SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                            cmd_exc.ExecuteNonQuery();
+                            //Borramos fichero de la carpeta mensajes
+                            File.Delete(dir_msg + file);
+                        }
+                    }
+                    connection.Close();
+                }
             }
         }
         //Borrar de una cadena un patrón específico

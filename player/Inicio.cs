@@ -28,10 +28,16 @@ namespace player
         private Random rand = new Random();
         private bool st_salida = false;  //Evalua la salida del programa
         private double songduration = 0;
-        private bool changes_in_PL = false;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         Queue<string> playlist = new Queue<string>();
         private string publi_folder = @"PUBLI/";
+        private string msg_folder = @"MSG/";
+        //Evalua si hay cambio en la playlist
+        private bool changes_in_PL = false;
+        //Evalua el estado de la tienda: activada o bloqueada
+        private bool estado_tienda = false;
+        //Determina si es un fichero de publicidad
+        private bool is_publi_file;
 
         public Inicio()
         {
@@ -139,8 +145,11 @@ namespace player
         }
         //Ajustes de volumen para el track bar de mensajes
         private void trackBarMsg_Scroll(object sender, EventArgs e)
-        {
+        {   
+            //Establecemos el volumen para los msg insta       
             playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+            //Establecemos el volumen para los msg auto                                                      
+            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
             lblMsgContainer.Text = trackBarMsg.Value.ToString();
         }
 
@@ -154,6 +163,7 @@ namespace player
             {
                 errorServer.SetError(txtServer, null);
                 con.SaveConnection("server", txtServer.Text);
+                getStatus();
             }
         }
 
@@ -182,7 +192,8 @@ namespace player
             // Verifica la presencia de tarjetas de audio
             Int32 nOutputsI = playerInsta.GetOutputDevicesCount();
             Int32 nOutputsM = playerMusic.GetOutputDevicesCount();
-            if (nOutputsI == 0 && nOutputsM == 0)
+            Int32 nOutputsA = playerMsgAuto.GetOutputDevicesCount();
+            if (nOutputsI == 0 && nOutputsM == 0 && nOutputsA == 0)
             {
                 MessageBox.Show("No hay dispositivos de audio.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 st_salida = true;
@@ -202,8 +213,10 @@ namespace player
                 textProxy.Text = con.LoadProxy();
                 //Toma la entidad por primera vez
                 showEntidad();
+                //Muestra el estado por primera vez
+                getStatus();
                 //Toma el listado por primera vez
-                if (con.CanConnectWithServer(con.LoadServer()))
+                if (estado_tienda)
                 {
                     getListDomains();
                 }
@@ -214,6 +227,7 @@ namespace player
                 // Iniciamos el sistema de audio
                 playerInsta.InitSoundSystem(1, 0, 0, 0, 0, -1);
                 playerMusic.InitSoundSystem(1, 0, 0, 0, 0, -1);
+                playerMsgAuto.InitSoundSystem(1, 0, 0, 0, 0, -1);
                 //Cada 20 horas
                 Timer20HOUR.Interval = wait20hour;
                 Timer20HOUR.Start();
@@ -230,10 +244,10 @@ namespace player
         private void Timer5MIN_Tick(object sender, EventArgs e)
         {
             Timer5MIN.Stop();
-            if (con.CanConnectWithServer(con.LoadServer()))
+            //Muestra el estado
+            getStatus();
+            if (estado_tienda)
             {
-                //Muestra el estado
-                getStatus();
                 //Solicitud (publi/msg) por dominio
                 getListDomains();
             }
@@ -242,8 +256,16 @@ namespace player
         private void Timer1MIN_Tick(object sender, EventArgs e)
         {
             Timer1MIN.Stop();
-            if (con.CanConnectWithServer(con.LoadServer()))
+            if (estado_tienda)
             {
+                //estado del player de Instantaneos
+                enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); 
+                //Comprobamos que el player de instantaneos está parado
+                if (instaStatus == enumPlayerStatus.SOUND_STOPPED || instaStatus == enumPlayerStatus.SOUND_NONE)
+                {
+                    //Busca un mensaje para reproducir
+                    mensajes_automaticos();
+                }
                 //Solicidud de ficheros publi/msg
                 solicitudFicheros();
             }
@@ -308,9 +330,9 @@ namespace player
         private void domEntidad_SelectedIndexChanged(object sender, EventArgs e)
         {
             errorAddDom.Clear();
-            BindingList<Combos> save_alm = new BindingList<Combos>();
             //Tomamos la entidad
             showEntidad();
+            BindingList<Combos> save_alm = new BindingList<Combos>();
             //Si el identificador es distinto de vacio
             if (shd.IDEntidad != "")
             {
@@ -537,9 +559,11 @@ namespace player
         //Descarga los ficheros con estado N
         private void solicitudFicheros()
         {
-            //Ejecutamos la solicitud de ficheros
+            //Ejecutamos la solicitud de publicidad
             publimsg.PubliForDown();
-            //Miramos los ficheros para la discarga
+            //Ejecutamos la solicitud de mensajes
+            publimsg.MsgForDown();
+            //Miramos los ficheros para la descarga
             if (publimsg.DownloadPubli().Count != 0)
             {
                 foreach (string getpub in publimsg.DownloadPubli())
@@ -548,7 +572,7 @@ namespace player
                     string nombre = pub[0]; //Nombre del Fichero
                     string f_ini = pub[1]; //Fecha de Inicio
                     string gap = pub[2]; //Fecha de Inicio
-                                         //Envio de peticion (publi_msg.cgi)
+                    //Envio de peticion (publi_msg.cgi)
                     string res = serverConnection(string.Format(@"/publi_msg.cgi?action=PubliFiles&existencia=N&fichero={0}&fecha_ini={1}&gap={2}", nombre, f_ini, gap));
                     if (res == "Descarga")
                     {
@@ -563,15 +587,15 @@ namespace player
             }
             if (publimsg.DownloadMsg().Count != 0)
             {
-                foreach (string m in publimsg.DownloadMsg())
+                foreach (string getmsg in publimsg.DownloadMsg())
                 {
-                    string res = serverConnection(string.Format(@"/publi_msg.cgi?action=MsgFiles&existencia=N&fichero={0}", m));
+                    string res = serverConnection(string.Format(@"/publi_msg.cgi?action=MsgFiles&existencia=N&fichero={0}", getmsg));
                     if (res == "Descarga")
                     {
                         //Descarga del fichero de publicidad
-                        downloadFile(m, @"mensaje", @"MSG/");
+                        downloadFile(getmsg, @"mensaje", msg_folder);
                         //Modificamos el estado a YES
-                        publimsg.UpdateStatus(m, "Y", @"mensaje");
+                        publimsg.UpdateStatus(getmsg, "Y", @"mensaje");
                     }
                 }
             }
@@ -603,11 +627,13 @@ namespace player
             {
                 barStInfoServ.ForeColor = Color.Green;
                 barStInfoServ.Text = "Activada";
+                estado_tienda = true;
             }
             if (shd.Status == "0" || shd.Status == "")
             {
                 barStInfoServ.ForeColor = Color.Red;
                 barStInfoServ.Text = "Desactivada";
+                estado_tienda = false;
             }
         }
         //Encargado de Reproducir un mensaje instantaneo
@@ -628,6 +654,8 @@ namespace player
                 playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
                 //Bajamos el sonido del reproductor de musica                                                          
                 playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
+                //Bajamos el sonido del reproductor de mensajes automaticoss                                                       
+                playerMsgAuto.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
                 //Reproducimos el instantaneo
                 playerInsta.PlaySound(0);
                 //bloqueamos boton: evita reproduccion masiva
@@ -639,6 +667,7 @@ namespace player
         {
             enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
             enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
+            enumPlayerStatus autoStatus = playerMsgAuto.GetPlayerStatus(0); //estado del player de MsgAuto
 
             //Comprueba si hay cambio en la PL de reproduccion
             if (changes_in_PL)
@@ -646,11 +675,20 @@ namespace player
                 crearPL();
                 changes_in_PL = false;
             }
-            //Cuando acaba la reproduccion de un instantaneo
-            if (instaStatus == enumPlayerStatus.SOUND_STOPPED)
+            //Cuando la reproduccion de un msg instantaneo y msg auto están parados
+            if ((instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_NONE) || (instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_STOPPED) || (instaStatus == enumPlayerStatus.SOUND_NONE && autoStatus == enumPlayerStatus.SOUND_STOPPED))
             {
-                //Subimos el sonido del reproductor de musica                                                          
-                playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                //Es un fichero de publicidad
+                if (is_publi_file)
+                {
+                    //Tomamos el volumen del trackbar de publicidad
+                    playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
+                }
+                else //Es una cancion normal
+                {
+                    //Tomamos el volumen del trackbar de música
+                    playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                }
                 //Habilitamos el boton del player instantaneo
                 sendMsgInst.Enabled = true;
             }
@@ -667,24 +705,15 @@ namespace player
             //Comprueba que el horario está entre el rango de fechas
             if (hro.HorarioReproduccion())
             {
+                //Cuando el reproductor de musica para, se vuelve a lanzar la siguiente cancion
                 if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
                 {
                     if (playlist.Count != 0)
                     {
                         byte[] bytes = null;
-                        string song = playlist.Peek();
-                        prob.Items.Add("Actual: " + song);
-                        //Si la cancion que toca es publicidad
-                        if (song.Contains(publi_folder))
-                        {
-                            //Tomamos el volumen del trackbar de publicidad
-                            playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
-                        }
-                        else
-                        {
-                            //Tomamos el volumen del trackbar de música
-                            playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
-                        }
+                        string song = playlist.Peek(); //Siguiente cancion
+                        //mira si el siguiente fichero es de publi
+                        is_publi_file = isPubli(song);
                         //Leemos los bytes de la cancion
                         bytes = File.ReadAllBytes(song);
                         //Si es un fichero encriptado, lo desencriptamos
@@ -705,7 +734,6 @@ namespace player
                             //Creamos otra
                             crearPL();
                         }
-                        prob.Items.Add("Siguiente: " + playlist.Peek());
                     }
                 }
                 if (playerStatus == enumPlayerStatus.SOUND_NONE)
@@ -714,7 +742,8 @@ namespace player
                     {
                         byte[] bytes = null;
                         string song = playlist.Peek();
-                        prob.Items.Add("Actual: " + song);
+                        //mira si el fichero es de publi
+                        is_publi_file = isPubli(song);
                         bytes = File.ReadAllBytes(song);
                         //Si es un fichero encriptado, lo desencriptamos
                         if (Path.GetExtension(song) == ".xxx") bytes = decript(bytes);
@@ -726,7 +755,6 @@ namespace player
                         }
                         playerMusic.PlaySound(0);
                         playlist.Dequeue();
-                        if (playlist.Count !=0 ) { prob.Items.Add("Siguiente: " + playlist.Peek()); }
                     }
                 }
             }
@@ -736,15 +764,6 @@ namespace player
                 barStSong.Text = "";
             }
         } 
-        //Informacion de la canción cuando se carga
-        private void playerMusic_SoundLoaded(object sender, SoundLoadedEventArgs e)
-        {
-            SoundInfo2 info = new SoundInfo2();
-            playerMusic.SoundInfoGet(0, ref info);
-            //Duracion de la canción
-            playerMusic.SoundDurationGet(0, ref songduration, false);
-            barStSong.Text = info.strMP3Tag1Artist + " - " + info.strMP3Tag1Title;
-        }
         //GENERADOR DE PLAYLIST
         private void crearPL()
         {
@@ -772,7 +791,7 @@ namespace player
             }
         }
         //Shuffle casero, creado con un random
-        public List<string> shuffle(List<string> list, Random rng)
+        private List<string> shuffle(List<string> list, Random rng)
         {
             int n = list.Count();
             while (n > 1)
@@ -784,6 +803,33 @@ namespace player
                 list[n] = temp;
             }
             return list;
+        }
+        //Comprueba si los mensajes automaticos están dentro del horario
+        private void mensajes_automaticos()
+        {
+            string actual = DateTime.Now.ToString("HH:mm");
+            byte[] bytes = null;
+
+            foreach (string m in publimsg.GetMensajes())
+            {
+                //Separa los datos de mensaje
+                string[] data = Regex.Split(m, @"\[]");
+                string filename = data[0];
+                string horario = data[1];
+                if (horario == actual)
+                {
+                    bytes = File.ReadAllBytes(msg_folder+filename);
+                    //Cargamos el fichero en memoria
+                    if (playerMsgAuto.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                    else
+                    {
+                        MessageBox.Show("No puedo cargar el fichero " + filename, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    //Reproducimos el mensaje automatico
+                    playerMsgAuto.PlaySound(0);
+                    break;
+                }
+            }
         }
         //Revisa si podemos acceder a una carpeta o no.
         private bool canAccess(string dir)
@@ -809,8 +855,6 @@ namespace player
             }
             return f_num;
         }
-
-        
         //Horario: Desde...
         private void timeDesde_ValueChanged(object sender, EventArgs e)
         {
@@ -900,6 +944,35 @@ namespace player
                 //Insertamos los nuevos datos aux
                 hro.InsertoHoraAux(d, h);
             }
+        }
+        //Informacion de la canción cuando se carga
+        private void playerMusic_SoundLoaded(object sender, SoundLoadedEventArgs e)
+        {
+            SoundInfo2 info = new SoundInfo2();
+            playerMusic.SoundInfoGet(0, ref info);
+            //Duracion de la canción
+            playerMusic.SoundDurationGet(0, ref songduration, false);
+            barStSong.Text = info.strMP3Tag1Artist + " - " + info.strMP3Tag1Title;
+        }
+        //Determina si un fichero es o no de publicidad
+        private bool isPubli(string song)
+        {
+            bool output = false;
+            //Si la cancion que toca es publicidad
+            if (song.Contains(publi_folder))
+            {
+                output = true;
+            }
+            //Sino false
+            return output;
+        }
+        //Cuando se carga un mensaje automatico
+        private void playerMsgAuto_SoundLoaded(object sender, SoundLoadedEventArgs e)
+        {
+            //Establecemos el volumen para los msg auto                                                      
+            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+            //Bajamos el sonido del reproductor de musica                                                          
+            playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
         }
     }
 }

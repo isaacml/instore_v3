@@ -42,6 +42,7 @@
             this.sendMsgInst = new System.Windows.Forms.Button();
             this.msgIns = new System.Windows.Forms.TextBox();
             this.Controles = new System.Windows.Forms.TabPage();
+            this.playerMsgAuto = new AudioDjStudio.AudioDjStudio();
             this.playerMusic = new AudioDjStudio.AudioDjStudio();
             this.groupVolumen = new System.Windows.Forms.GroupBox();
             this.lblMsgContainer = new System.Windows.Forms.Label();
@@ -227,6 +228,7 @@
             // 
             // Controles
             // 
+            this.Controles.Controls.Add(this.playerMsgAuto);
             this.Controles.Controls.Add(this.playerMusic);
             this.Controles.Controls.Add(this.groupVolumen);
             this.Controles.Controls.Add(this.groupHorario);
@@ -238,6 +240,16 @@
             this.Controles.Text = "Controles";
             this.Controles.ToolTipText = "Tienda";
             this.Controles.UseVisualStyleBackColor = true;
+            // 
+            // playerMsgAuto
+            // 
+            this.playerMsgAuto.FaderSettings = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+            this.playerMsgAuto.LastError = AudioDjStudio.enumErrorCodes.ERR_NOERROR;
+            this.playerMsgAuto.Location = new System.Drawing.Point(586, 291);
+            this.playerMsgAuto.Name = "playerMsgAuto";
+            this.playerMsgAuto.Size = new System.Drawing.Size(48, 48);
+            this.playerMsgAuto.TabIndex = 3;
+            this.playerMsgAuto.SoundLoaded += new AudioDjStudio.AudioDjStudio.SoundLoadedEventHandler(this.playerMsgAuto_SoundLoaded);
             // 
             // playerMusic
             // 
@@ -802,6 +814,7 @@
         private AudioDjStudio.AudioDjStudio playerMusic;
         private System.Windows.Forms.Timer tPlayer;
         private AudioDjStudio.AudioDjStudio playerInsta;
+        private AudioDjStudio.AudioDjStudio playerMsgAuto;
     }
 }
 
