@@ -182,5 +182,42 @@ namespace player
             minutos = (Convert.ToInt32(data[0]) * 60) + Convert.ToInt32(data[1]);
             return minutos;
         }
+        //Mira la ultima conexión de la tienda
+        public int ShopLastConnect()
+        {
+            lock (bloqueo)
+            {
+                int last_con = 0;
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"SELECT last_connect FROM tienda");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        //Recogemos los ficheros
+                        last_con = datos.GetInt32(datos.GetOrdinal("last_connect"));
+                    }
+                    connection.Close();
+                }
+                return last_con;
+            }
+        }
+        //Modificamos la ultima conexión de la tienda
+        public void EditLastConnect(int timestamp)
+        {
+            lock (bloqueo)
+            {
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    string query = string.Format(@"UPDATE tienda SET last_connect={0}", timestamp);
+                    SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
+                    cmd_exc.ExecuteNonQuery();
+                    connection.Close();
+                }
+            }
+        }
     }
 }

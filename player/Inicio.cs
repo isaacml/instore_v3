@@ -19,6 +19,7 @@ namespace player
     public partial class Inicio : Form
     {
         private double songduration = 0;
+        private int segs_of_day = 86400;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         private string file_config = "config.ini";
         private string publi_folder = @"PUBLI/";
@@ -322,147 +323,168 @@ namespace player
             errorAddDom.Clear();
             //Tomamos la entidad
             showEntidad();
-            BindingList<Combos> save_alm = new BindingList<Combos>();
-            //Si el identificador es distinto de vacio
-            if (shd.IDEntidad != "")
+            //comprobamos el estado
+            if (estado_tienda)
             {
-                string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
-                if (query != "")
+                BindingList<Combos> save_alm = new BindingList<Combos>();
+                //Si el identificador es distinto de vacio
+                if (shd.IDEntidad != "")
                 {
-                    string[] alm = query.Split(';');
-                    foreach (string alms in alm)
+                    string query = serverConnection(@"/transf_orgs_vs.cgi?action=almacen&entidad=" + shd.IDEntidad);
+                    if (query != "")
                     {
-                        if (alms != "")
+                        string[] alm = query.Split(';');
+                        foreach (string alms in alm)
                         {
-                            //Separamos los distintos almacenes
-                            string[] almacenes = Regex.Split(alms, @"\<=>");
-                            save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                            if (alms != "")
+                            {
+                                //Separamos los distintos almacenes
+                                string[] almacenes = Regex.Split(alms, @"\<=>");
+                                save_alm.Add(new Combos(almacenes[0], almacenes[1]));
+                            }
                         }
                     }
                 }
+                else //No hay entidad
+                {
+                    //Reseteamos los selects a vacios
+                    save_alm.Add(new Combos("", ""));
+                    domPais.DataSource = save_alm;
+                    domRegion.DataSource = save_alm;
+                    domProv.DataSource = save_alm;
+                    domTienda.DataSource = save_alm;
+                }
+                domAlmacen.DataSource = save_alm;
+                domAlmacen.DisplayMember = "Value";
+                domAlmacen.ValueMember = "ID";
             }
-            else //No hay entidad
-            {
-                //Reseteamos los selects a vacios
-                save_alm.Add(new Combos("", ""));
-                domPais.DataSource = save_alm;
-                domRegion.DataSource = save_alm;
-                domProv.DataSource = save_alm;
-                domTienda.DataSource = save_alm;
-            }
-            domAlmacen.DataSource = save_alm;
-            domAlmacen.DisplayMember = "Value";
-            domAlmacen.ValueMember = "ID";
         }
         //Cambio de Almacen(combobox de configuracion)
         private void domAlmacen_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (domAlmacen.SelectedValue.ToString() != "")
+            //comprobamos el estado
+            if (estado_tienda)
             {
-                errorAddDom.Clear();
-                BindingList<Combos> save_pais = new BindingList<Combos>();
-                string query = serverConnection(@"/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
-                if (query != "")
+                if (domAlmacen.SelectedValue.ToString() != "")
                 {
-                    string[] pais = query.Split(';');
-                    foreach (string p in pais)
+                    errorAddDom.Clear();
+                    BindingList<Combos> save_pais = new BindingList<Combos>();
+                    string query = serverConnection(@"/transf_orgs_vs.cgi?action=pais&almacen=" + domAlmacen.SelectedValue.ToString());
+                    if (query != "")
                     {
-                        if (p != "")
+                        string[] pais = query.Split(';');
+                        foreach (string p in pais)
                         {
-                            //Separamos los distintos paises
-                            string[] paises = Regex.Split(p, @"\<=>");
-                            save_pais.Add(new Combos(paises[0], paises[1]));
+                            if (p != "")
+                            {
+                                //Separamos los distintos paises
+                                string[] paises = Regex.Split(p, @"\<=>");
+                                save_pais.Add(new Combos(paises[0], paises[1]));
+                            }
                         }
                     }
+                    else
+                    {
+                        save_pais.Add(new Combos("", ""));
+                    }
+                    domPais.DataSource = save_pais;
+                    domPais.DisplayMember = "Value";
+                    domPais.ValueMember = "ID";
                 }
-                else
-                {
-                    save_pais.Add(new Combos("", ""));
-                }
-                domPais.DataSource = save_pais;
-                domPais.DisplayMember = "Value";
-                domPais.ValueMember = "ID";
             }
         }
         //Cambio de Pais(combobox de configuracion)
         private void domPais_SelectedIndexChanged(object sender, EventArgs e)
         {
-            errorAddDom.Clear();
-            BindingList<Combos> save_region = new BindingList<Combos>();
-            string query = serverConnection(@"/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
-            if (query != "")
+            //comprobamos el estado
+            if (estado_tienda)
             {
-                string[] region = query.Split(';');
-                foreach (string r in region)
+                errorAddDom.Clear();
+                BindingList<Combos> save_region = new BindingList<Combos>();
+                string query = serverConnection(@"/transf_orgs_vs.cgi?action=region&pais=" + domPais.SelectedValue.ToString());
+                if (query != "")
                 {
-                    if (r != "")
+                    string[] region = query.Split(';');
+                    foreach (string r in region)
                     {
-                        //Separamos las distintas regiones
-                        string[] regiones = Regex.Split(r, @"\<=>");
-                        save_region.Add(new Combos(regiones[0], regiones[1]));
+                        if (r != "")
+                        {
+                            //Separamos las distintas regiones
+                            string[] regiones = Regex.Split(r, @"\<=>");
+                            save_region.Add(new Combos(regiones[0], regiones[1]));
+                        }
                     }
                 }
+                else
+                {
+                    save_region.Add(new Combos("", ""));
+                }
+                domRegion.DataSource = save_region;
+                domRegion.DisplayMember = "Value";
+                domRegion.ValueMember = "ID";
             }
-            else
-            {
-                save_region.Add(new Combos("", ""));
-            }
-            domRegion.DataSource = save_region;
-            domRegion.DisplayMember = "Value";
-            domRegion.ValueMember = "ID";
         }
         //Cambio de Region(combobox de configuracion)
         private void domRegion_SelectedIndexChanged(object sender, EventArgs e)
         {
-            errorAddDom.Clear();
-            BindingList<Combos> save_prov = new BindingList<Combos>();
-            string query = serverConnection(@"/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
-            if (query != "")
+            //comprobamos el estado
+            if (estado_tienda)
             {
-                string[] provincia = query.Split(';');
-                foreach (string p in provincia)
+                errorAddDom.Clear();
+                BindingList<Combos> save_prov = new BindingList<Combos>();
+                string query = serverConnection(@"/transf_orgs_vs.cgi?action=provincia&region=" + domRegion.SelectedValue.ToString());
+                if (query != "")
                 {
-                    if (p != "")
+                    string[] provincia = query.Split(';');
+                    foreach (string p in provincia)
                     {
-                        //Separamos las distintas provincias
-                        string[] provincias = Regex.Split(p, @"\<=>");
-                        save_prov.Add(new Combos(provincias[0], provincias[1]));
+                        if (p != "")
+                        {
+                            //Separamos las distintas provincias
+                            string[] provincias = Regex.Split(p, @"\<=>");
+                            save_prov.Add(new Combos(provincias[0], provincias[1]));
+                        }
                     }
                 }
+                else
+                {
+                    save_prov.Add(new Combos("", ""));
+                }
+                domProv.DataSource = save_prov;
+                domProv.DisplayMember = "Value";
+                domProv.ValueMember = "ID";
             }
-            else {
-                save_prov.Add(new Combos("", ""));
-            }
-            domProv.DataSource = save_prov;
-            domProv.DisplayMember = "Value";
-            domProv.ValueMember = "ID";
         }
         //Cambio de Provincia(combobox de configuracion)
         private void domProv_SelectedIndexChanged(object sender, EventArgs e)
         {
-            errorAddDom.Clear();
-            BindingList<Combos> save_shop = new BindingList<Combos>();
-            string query = serverConnection(@"/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
-            if (query != "")
+            //comprobamos el estado
+            if (estado_tienda)
             {
-                string[] tienda = query.Split(';');
-                foreach (string s in tienda)
+                errorAddDom.Clear();
+                BindingList<Combos> save_shop = new BindingList<Combos>();
+                string query = serverConnection(@"/transf_orgs_vs.cgi?action=tienda&provincia=" + domProv.SelectedValue.ToString());
+                if (query != "")
                 {
-                    if (s != "")
+                    string[] tienda = query.Split(';');
+                    foreach (string s in tienda)
                     {
-                        //Separamos las distintas tiendas
-                        string[] tiendas = Regex.Split(s, @"\<=>");
-                        save_shop.Add(new Combos(tiendas[0], tiendas[1]));
+                        if (s != "")
+                        {
+                            //Separamos las distintas tiendas
+                            string[] tiendas = Regex.Split(s, @"\<=>");
+                            save_shop.Add(new Combos(tiendas[0], tiendas[1]));
+                        }
                     }
                 }
+                else
+                {
+                    save_shop.Add(new Combos("", ""));
+                }
+                domTienda.DataSource = save_shop;
+                domTienda.DisplayMember = "Value";
+                domTienda.ValueMember = "ID";
             }
-            else
-            {
-                save_shop.Add(new Combos("", ""));
-            }
-            domTienda.DataSource = save_shop;
-            domTienda.DisplayMember = "Value";
-            domTienda.ValueMember = "ID";
         }
         //Añadir Dominio (zona de configuracion)
         private void btnAddDom_Click(object sender, EventArgs e)
@@ -475,21 +497,29 @@ namespace player
                 string reg = ((Combos)domRegion.SelectedItem).Value;
                 string prov = ((Combos)domProv.SelectedItem).Value;
                 string shop = ((Combos)domTienda.SelectedItem).Value;
-                //Colocamos cada una de las organizaciones para formar el dominio
-                string dominio = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", ent, alm, pais, reg, prov, shop);
-                //Se comprueba la existencia del dominio en la base de datos
-                bool existe = doms.ExisteDominio(dominio);
-                if (!existe)
+                if (ent == "" || alm == "" || pais == "" || reg == "" || prov == "" || shop == "")
                 {
-                    //Añadimos el dominio a la base de datos
-                    doms.InsertarDominio(dominio);
-                    //Se añade al listbox
-                    listBoxDom.Items.Add(dominio);
+                    //Organizaciones vacías
+                    errorAddDom.SetError(btnAddDom, "Hay organizaciones vacías");
                 }
                 else
-                {
-                    //El dominio ya existe
-                    errorAddDom.SetError(btnAddDom, "Ese dominio ya existe");
+                { 
+                    //Colocamos cada una de las organizaciones para formar el dominio
+                    string dominio = string.Format("{0}.{1}.{2}.{3}.{4}.{5}", ent, alm, pais, reg, prov, shop);
+                    //Se comprueba la existencia del dominio en la base de datos
+                    bool existe = doms.ExisteDominio(dominio);
+                    if (!existe)
+                    {
+                        //Añadimos el dominio a la base de datos
+                        doms.InsertarDominio(dominio);
+                        //Se añade al listbox
+                        listBoxDom.Items.Add(dominio);
+                    }
+                    else
+                    {
+                        //El dominio ya existe
+                        errorAddDom.SetError(btnAddDom, "Ese dominio ya existe");
+                    }
                 }
             }
             catch
@@ -612,44 +642,73 @@ namespace player
         private void getStatus()
         {
             shd.Status = serverConnection("/acciones.cgi?action=check_entidad&ent=" + shd.Entidad);
-            //Estado de la Tienda
-            if (shd.Status == "1")
+            int days_month = DateTime.DaysInMonth(DateTime.Now.Year, DateTime.Now.Month);
+            int timestamp = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0, 0))).TotalSeconds;
+            int segs_month = days_month * segs_of_day;
+            //Evaluamos las respuestas
+            if (shd.Status == "")
             {
-                barStInfoServ.ForeColor = Color.Green;
-                barStInfoServ.Text = "Activada";
-                estado_tienda = true;
+                if (hro.ShopLastConnect() - (timestamp - segs_month) < 0)
+                {
+                    barStInfoServ.ForeColor = Color.Red;
+                    barStInfoServ.Text = "Desactivada";
+                    estado_tienda = false;
+                }
+                else
+                {
+                    barStInfoServ.ForeColor = Color.Green;
+                    barStInfoServ.Text = "Activada";
+                    estado_tienda = true;
+                }
             }
-            if (shd.Status == "0" || shd.Status == "")
+            else
             {
-                barStInfoServ.ForeColor = Color.Red;
-                barStInfoServ.Text = "Desactivada";
-                estado_tienda = false;
+                //Estado de la Tienda
+                if (shd.Status == "1")
+                {
+                    //Cambiamos el last connect
+                    hro.EditLastConnect(timestamp);
+                    barStInfoServ.ForeColor = Color.Green;
+                    barStInfoServ.Text = "Activada";
+                    estado_tienda = true;
+                }
+                if (shd.Status == "0")
+                {
+                    //Cambiamos el last connect
+                    hro.EditLastConnect(1000);
+                    barStInfoServ.ForeColor = Color.Red;
+                    barStInfoServ.Text = "Desactivada";
+                    estado_tienda = false;
+                }
             }
         }
         //Encargado de Reproducir un mensaje instantaneo
         private void sendMsgInst_Click(object sender, EventArgs e)
         {
-            byte[] bytes = null;
-
-            if (shd.InstaMSG != null)
+            if (estado_tienda)
             {
-                bytes = File.ReadAllBytes(shd.InstaMSG);
+                byte[] bytes = null;
 
-                if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
-                else
+                if (shd.InstaMSG != null)
                 {
-                    MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    bytes = File.ReadAllBytes(shd.InstaMSG);
+
+                    if (playerInsta.LoadSoundFromMemory(0, bytes, bytes.Length) == enumErrorCodes.NOERROR) { }
+                    else
+                    {
+                        MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    //Establecemos el volumen de reproductor de instantaneos
+                    playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+                    //Bajamos el sonido del reproductor de musica                                                          
+                    playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
+                    //Bajamos el sonido del reproductor de mensajes automaticoss                                                       
+                    playerMsgAuto.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
+                    //Reproducimos el instantaneo
+                    playerInsta.PlaySound(0);
+                    //bloqueamos boton: evita reproduccion masiva
+                    sendMsgInst.Enabled = false;
                 }
-                //Establecemos el volumen de reproductor de instantaneos
-                playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
-                //Bajamos el sonido del reproductor de musica                                                          
-                playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
-                //Bajamos el sonido del reproductor de mensajes automaticoss                                                       
-                playerMsgAuto.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
-                //Reproducimos el instantaneo
-                playerInsta.PlaySound(0);
-                //bloqueamos boton: evita reproduccion masiva
-                sendMsgInst.Enabled = false;
             }
         }
         //PLAYER: Musica + Publicidad
@@ -658,30 +717,6 @@ namespace player
             enumPlayerStatus playerStatus = playerMusic.GetPlayerStatus(0); //estado del player Music
             enumPlayerStatus instaStatus = playerInsta.GetPlayerStatus(0); //estado del player de Instantaneos
             enumPlayerStatus autoStatus = playerMsgAuto.GetPlayerStatus(0); //estado del player de MsgAuto
-
-            //Comprueba si hay cambio en la PL de reproduccion
-            if (changes_in_PL)
-            {
-                crearPL();
-                changes_in_PL = false;
-            }
-            //Cuando la reproduccion de un msg instantaneo y msg auto están parados
-            if ((instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_NONE) || (instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_STOPPED) || (instaStatus == enumPlayerStatus.SOUND_NONE && autoStatus == enumPlayerStatus.SOUND_STOPPED))
-            {
-                //Es un fichero de publicidad
-                if (is_publi_file)
-                {
-                    //Tomamos el volumen del trackbar de publicidad
-                    playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
-                }
-                else //Es una cancion normal
-                {
-                    //Tomamos el volumen del trackbar de música
-                    playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
-                }
-                //Habilitamos el boton del player instantaneo
-                sendMsgInst.Enabled = true;
-            }
             //Cuando se está reproduciendo la PL
             if (playerStatus == enumPlayerStatus.SOUND_PLAYING)
             {
@@ -692,9 +727,32 @@ namespace player
                 percentage = position / songduration * 100.00;
                 barStStatus.Value = (int)percentage; // la mostramos en el pBar
             }
-            //Comprueba que el horario está entre el rango de fechas
-            if (hro.HorarioReproduccion())
+            //Comprueba que el horario está entre el rango de fechas y el estado es correcto
+            if (hro.HorarioReproduccion() && estado_tienda)
             {
+                //Comprueba si hay cambio en la PL de reproduccion
+                if (changes_in_PL)
+                {
+                    crearPL();
+                    changes_in_PL = false;
+                }
+                //Cuando la reproduccion de un msg instantaneo y msg auto están parados
+                if ((instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_NONE) || (instaStatus == enumPlayerStatus.SOUND_STOPPED && autoStatus == enumPlayerStatus.SOUND_STOPPED) || (instaStatus == enumPlayerStatus.SOUND_NONE && autoStatus == enumPlayerStatus.SOUND_STOPPED))
+                {
+                    //Es un fichero de publicidad
+                    if (is_publi_file)
+                    {
+                        //Tomamos el volumen del trackbar de publicidad
+                        playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
+                    }
+                    else //Es una cancion normal
+                    {
+                        //Tomamos el volumen del trackbar de música
+                        playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                    }
+                    //Habilitamos el boton del player instantaneo
+                    sendMsgInst.Enabled = true;
+                }
                 //Cuando el reproductor de musica para, se vuelve a lanzar la siguiente cancion
                 if (playerStatus == enumPlayerStatus.SOUND_STOPPED)
                 {
