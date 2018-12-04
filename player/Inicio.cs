@@ -816,13 +816,11 @@ namespace player
         private void crearPL()
         {
             playlist.Clear();
-            prob.Items.Clear();
             int pl = 1;
             //Se añade el listado de musica + publicidad
             foreach (string m in shuffle(shd.Music, rand))
             {
                 playlist.Enqueue(m);
-                prob.Items.Add(m);
 
                 Tuple<List<string>, int> publi = publimsg.GetPublicidad();
                 if (pl == publi.Item2)
@@ -830,7 +828,6 @@ namespace player
                     foreach (string p in shuffle(publi.Item1, rand))
                     {
                         playlist.Enqueue(publi_folder + p);
-                        prob.Items.Add(publi_folder + p);
                         break;
                     }
                     pl = 0;

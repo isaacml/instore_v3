@@ -33,7 +33,6 @@
             this.tabControl1 = new System.Windows.Forms.TabControl();
             this.Música = new System.Windows.Forms.TabPage();
             this.playerInsta = new AudioDjStudio.AudioDjStudio();
-            this.prob = new System.Windows.Forms.ListBox();
             this.lblListDirMusic = new System.Windows.Forms.Label();
             this.listMusicDirs = new System.Windows.Forms.CheckedListBox();
             this.lblMusicDirs = new System.Windows.Forms.Label();
@@ -124,7 +123,6 @@
             // Música
             // 
             this.Música.Controls.Add(this.playerInsta);
-            this.Música.Controls.Add(this.prob);
             this.Música.Controls.Add(this.lblListDirMusic);
             this.Música.Controls.Add(this.listMusicDirs);
             this.Música.Controls.Add(this.lblMusicDirs);
@@ -149,14 +147,6 @@
             this.playerInsta.Name = "playerInsta";
             this.playerInsta.Size = new System.Drawing.Size(48, 48);
             this.playerInsta.TabIndex = 10;
-            // 
-            // prob
-            // 
-            this.prob.FormattingEnabled = true;
-            this.prob.Location = new System.Drawing.Point(47, 6);
-            this.prob.Name = "prob";
-            this.prob.Size = new System.Drawing.Size(670, 43);
-            this.prob.TabIndex = 9;
             // 
             // lblListDirMusic
             // 
@@ -447,18 +437,18 @@
             this.lblProxy.AutoSize = true;
             this.lblProxy.Location = new System.Drawing.Point(159, 375);
             this.lblProxy.Name = "lblProxy";
-            this.lblProxy.Size = new System.Drawing.Size(78, 13);
+            this.lblProxy.Size = new System.Drawing.Size(61, 13);
             this.lblProxy.TabIndex = 6;
-            this.lblProxy.Text = "URL del Proxy:";
+            this.lblProxy.Text = "URL Proxy:";
             // 
             // lblServer
             // 
             this.lblServer.AutoSize = true;
             this.lblServer.Location = new System.Drawing.Point(158, 334);
             this.lblServer.Name = "lblServer";
-            this.lblServer.Size = new System.Drawing.Size(91, 13);
+            this.lblServer.Size = new System.Drawing.Size(74, 13);
             this.lblServer.TabIndex = 5;
-            this.lblServer.Text = "URL del Servidor:";
+            this.lblServer.Text = "URL Servidor:";
             // 
             // btnSendProxy
             // 
@@ -510,9 +500,9 @@
             this.groupBoxDom.Controls.Add(this.domPais);
             this.groupBoxDom.Controls.Add(this.domAlmacen);
             this.groupBoxDom.Controls.Add(this.domEntidad);
-            this.groupBoxDom.Location = new System.Drawing.Point(108, 21);
+            this.groupBoxDom.Location = new System.Drawing.Point(47, 21);
             this.groupBoxDom.Name = "groupBoxDom";
-            this.groupBoxDom.Size = new System.Drawing.Size(565, 295);
+            this.groupBoxDom.Size = new System.Drawing.Size(685, 292);
             this.groupBoxDom.TabIndex = 0;
             this.groupBoxDom.TabStop = false;
             this.groupBoxDom.Text = "Configuración de Dominios";
@@ -522,7 +512,7 @@
             this.btnBorrarDom.BackColor = System.Drawing.Color.Firebrick;
             this.btnBorrarDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnBorrarDom.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnBorrarDom.Location = new System.Drawing.Point(233, 257);
+            this.btnBorrarDom.Location = new System.Drawing.Point(286, 256);
             this.btnBorrarDom.Name = "btnBorrarDom";
             this.btnBorrarDom.Size = new System.Drawing.Size(121, 23);
             this.btnBorrarDom.TabIndex = 8;
@@ -533,9 +523,9 @@
             // listBoxDom
             // 
             this.listBoxDom.FormattingEnabled = true;
-            this.listBoxDom.Location = new System.Drawing.Point(6, 156);
+            this.listBoxDom.Location = new System.Drawing.Point(57, 155);
             this.listBoxDom.Name = "listBoxDom";
-            this.listBoxDom.Size = new System.Drawing.Size(553, 95);
+            this.listBoxDom.Size = new System.Drawing.Size(574, 95);
             this.listBoxDom.TabIndex = 7;
             // 
             // btnAddDom
@@ -543,7 +533,7 @@
             this.btnAddDom.BackColor = System.Drawing.Color.PaleGreen;
             this.btnAddDom.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAddDom.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnAddDom.Location = new System.Drawing.Point(233, 111);
+            this.btnAddDom.Location = new System.Drawing.Point(286, 116);
             this.btnAddDom.Margin = new System.Windows.Forms.Padding(0);
             this.btnAddDom.Name = "btnAddDom";
             this.btnAddDom.Size = new System.Drawing.Size(121, 23);
@@ -555,7 +545,7 @@
             // domTienda
             // 
             this.domTienda.FormattingEnabled = true;
-            this.domTienda.Location = new System.Drawing.Point(401, 76);
+            this.domTienda.Location = new System.Drawing.Point(454, 83);
             this.domTienda.Name = "domTienda";
             this.domTienda.Size = new System.Drawing.Size(121, 21);
             this.domTienda.TabIndex = 5;
@@ -564,7 +554,7 @@
             // domProv
             // 
             this.domProv.FormattingEnabled = true;
-            this.domProv.Location = new System.Drawing.Point(233, 76);
+            this.domProv.Location = new System.Drawing.Point(286, 83);
             this.domProv.Name = "domProv";
             this.domProv.Size = new System.Drawing.Size(121, 21);
             this.domProv.TabIndex = 4;
@@ -574,7 +564,7 @@
             // domRegion
             // 
             this.domRegion.FormattingEnabled = true;
-            this.domRegion.Location = new System.Drawing.Point(54, 77);
+            this.domRegion.Location = new System.Drawing.Point(107, 84);
             this.domRegion.Name = "domRegion";
             this.domRegion.Size = new System.Drawing.Size(121, 21);
             this.domRegion.TabIndex = 3;
@@ -584,7 +574,7 @@
             // domPais
             // 
             this.domPais.FormattingEnabled = true;
-            this.domPais.Location = new System.Drawing.Point(401, 37);
+            this.domPais.Location = new System.Drawing.Point(454, 44);
             this.domPais.Name = "domPais";
             this.domPais.Size = new System.Drawing.Size(121, 21);
             this.domPais.TabIndex = 2;
@@ -594,7 +584,7 @@
             // domAlmacen
             // 
             this.domAlmacen.FormattingEnabled = true;
-            this.domAlmacen.Location = new System.Drawing.Point(233, 37);
+            this.domAlmacen.Location = new System.Drawing.Point(286, 44);
             this.domAlmacen.Name = "domAlmacen";
             this.domAlmacen.Size = new System.Drawing.Size(121, 21);
             this.domAlmacen.TabIndex = 1;
@@ -604,7 +594,7 @@
             // domEntidad
             // 
             this.domEntidad.FormattingEnabled = true;
-            this.domEntidad.Location = new System.Drawing.Point(54, 37);
+            this.domEntidad.Location = new System.Drawing.Point(107, 44);
             this.domEntidad.Name = "domEntidad";
             this.domEntidad.Size = new System.Drawing.Size(121, 21);
             this.domEntidad.TabIndex = 0;
@@ -804,7 +794,6 @@
         private System.Windows.Forms.Timer Timer5MIN;
         private System.Windows.Forms.ErrorProvider errorAddDom;
         private System.Windows.Forms.Timer Timer1MIN;
-        private System.Windows.Forms.ListBox prob;
         private AudioDjStudio.AudioDjStudio playerMusic;
         private System.Windows.Forms.Timer tPlayer;
         private AudioDjStudio.AudioDjStudio playerInsta;
