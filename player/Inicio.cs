@@ -28,6 +28,7 @@ namespace player
         private Shared shd = new Shared();
         private Connect con = new Connect();
         private Horario hro = new Horario();
+        private Music mus = new Music();
         private Domains doms = new Domains();
         private PubliMsg publimsg = new PubliMsg();
         private Random rand = new Random();
@@ -51,46 +52,32 @@ namespace player
             if (openMusicDirs.ShowDialog() == DialogResult.OK)
             {
                 listMusicDirs.Items.Clear();
-                shd.SubDirs.Clear();
                 //Tomamos el nombre del directorio 
                 string directorio = openMusicDirs.SelectedPath;
                 //Mostramos directorio
                 musicDirs.Text = directorio;
+                //Guardamos en base de datos
+                mus.GuardarDirectorioRaiz(directorio+@"\");
+                //Comprobamos existencia de directorios de música
+                if (mus.ExisteDirectoriosMusica())
+                {
+                    //Borramos todos los que habían anteriormente
+                    mus.BorrarDirectoriosMusica();
+                }
                 //Comprobamos si los subdirectorios son accesibles
                 foreach (string d in Directory.GetDirectories(directorio))
                 {
                     bool access = canAccess(d);
                     if (access == true)
                     {
-                        //Guardamos los subdirectorios
-                        shd.SubDirs.Add(d);
-                        //Añadimos al listado de subdirectorios
                         DirectoryInfo dir = new DirectoryInfo(d);
+                        //Guardamos el directorio
+                        mus.InsertarDirectorioMusica(dir.Name);
+                        //Añadimos al listado de subdirectorios
                         listMusicDirs.Items.Add(dir.Name);
                     }
                 }
             }
-        }
-        //Guarda en un listado los ficheros MP3 de las carpetas marcadas
-        private void listMusicDirs_SelectedValueChanged(object sender, EventArgs e)
-        {
-            shd.Music.Clear();
-            foreach (string lst in listMusicDirs.CheckedItems)
-            {
-                foreach (string subdir in shd.SubDirs)
-                {
-                    if (canAccess(subdir))
-                    {
-                        if (subdir.Contains(lst))
-                        {
-                            //Guardamos ficheros mp3/wav en el listado
-                            shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
-                                      .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
-                        }
-                    }
-                }
-            }
-            changes_in_PL = true;
         }
         //Abre el explorador para seleccionar un msg instantaneo
         private void msgIns_Click(object sender, EventArgs e)
@@ -221,6 +208,33 @@ namespace player
                 if (estado_tienda)
                 {
                     getListDomains();
+                    //Cargamos directorio principal (1vez)
+                    if (mus.ExisteDirectorioRaiz())
+                    {
+                        //Mostramos directorio principal
+                        musicDirs.Text = mus.CargarDirectorioRaiz();
+                    }
+                    //Cargamos carpetas de música (1vez)
+                    if (mus.ExisteDirectoriosMusica())
+                    {
+                        //Cargamos la carpetas
+                        foreach (string dirs in mus.ListadoDirectoriosMusica())
+                        {
+                            //Hacemos el chequeo de carpetas
+                            if (mus.IsCheck(dirs))
+                            {
+                                //Carpetas marcadas
+                                int index = listMusicDirs.Items.Add(dirs);
+                                listMusicDirs.SetItemChecked(index, true);
+                            }
+                            else
+                            {
+                                //Carpetas desmarcadas
+                                int index = listMusicDirs.Items.Add(dirs);
+                                listMusicDirs.SetItemChecked(index, false);
+                            }
+                        }
+                    }
                 }
                 //tiempos
                 int wait5min = (5 * 60 * 1000); // 5 min
@@ -1018,6 +1032,34 @@ namespace player
             }
             //Sino false
             return output;
+        }
+        //Guarda en un listado los ficheros MP3 de las carpetas marcadas
+        private void listMusicDirs_ItemCheck(object sender, ItemCheckEventArgs e)
+        {
+            prob.Items.Clear();
+            if (e.NewValue == CheckState.Unchecked)
+            {
+                mus.UpdateCheckMusica(listMusicDirs.Items[e.Index].ToString(), 0);
+            }
+            if (e.NewValue == CheckState.Checked)
+            {
+                mus.UpdateCheckMusica(listMusicDirs.Items[e.Index].ToString(), 1);
+            }
+            changes_in_PL = true;
+            /*
+                foreach (string subdir in shd.SubDirs)
+                {
+                    if (canAccess(subdir))
+                    {
+                        if (subdir.Contains(lst))
+                        {
+                            //Guardamos ficheros mp3/wav en el listado
+                            shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
+                                      .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
+                        }
+                    }
+                }
+                */
         }
     }
 }
