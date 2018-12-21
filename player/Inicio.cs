@@ -124,22 +124,25 @@ namespace player
         //Ajustes de volumen para el track bar de musica
         private void trackBarMusica_Scroll(object sender, EventArgs e)
         {
-            playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
-            lblMusicContainer.Text = trackBarMusica.Value.ToString();
+            shd.VolMusica = trackBarMusica.Value;
+            playerMusic.StreamVolumeLevelSet(0, (float)shd.VolMusica, enumVolumeScales.SCALE_LINEAR);
+            lblMusicContainer.Text = shd.VolMusica.ToString();
         }
         //Ajustes de volumen para el track bar de publicidad
         private void trackBarPubli_Scroll(object sender, EventArgs e)
         {
-            lblPubliContainer.Text = trackBarPubli.Value.ToString();
+            shd.VolPublicidad = trackBarPubli.Value;
+            lblPubliContainer.Text = shd.VolPublicidad.ToString();
         }
         //Ajustes de volumen para el track bar de mensajes
         private void trackBarMsg_Scroll(object sender, EventArgs e)
-        {   
+        {
+            shd.VolMensajes = trackBarMsg.Value;
             //Establecemos el volumen para los msg insta       
-            playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+            playerInsta.StreamVolumeLevelSet(0, (float)shd.VolMensajes, enumVolumeScales.SCALE_LINEAR);
             //Establecemos el volumen para los msg auto                                                      
-            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
-            lblMsgContainer.Text = trackBarMsg.Value.ToString();
+            playerMsgAuto.StreamVolumeLevelSet(0, (float)shd.VolMensajes, enumVolumeScales.SCALE_LINEAR);
+            lblMsgContainer.Text = shd.VolMensajes.ToString();
         }
 
         private void btnSendServer_Click(object sender, EventArgs e)
@@ -190,6 +193,13 @@ namespace player
             }
             else
             {
+                //Volumenes Iniciales
+                trackBarMusica.Value = shd.VolMusica;
+                lblMusicContainer.Text = shd.VolMusica.ToString();
+                trackBarPubli.Value = shd.VolPublicidad;
+                lblPubliContainer.Text = shd.VolPublicidad.ToString();
+                trackBarMsg.Value = shd.VolMensajes;
+                lblMsgContainer.Text = shd.VolMensajes.ToString();
                 //Cargamos horario por primera vez
                 if (hro.ExisteHorario())
                 {
@@ -232,6 +242,17 @@ namespace player
                                 //Carpetas desmarcadas
                                 int index = listMusicDirs.Items.Add(dirs);
                                 listMusicDirs.SetItemChecked(index, false);
+                            }
+                        }
+                        //Tomamos el listado de las carptas marcadas
+                        List <string> marcadas = mus.AllCheckedMusic();
+                        foreach (string subdir in marcadas)
+                        {
+                            if (canAccess(subdir))
+                            {
+                                //Guardamos ficheros mp3/wav en el listado
+                                shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
+                                            .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
                             }
                         }
                     }
@@ -713,7 +734,7 @@ namespace player
                         MessageBox.Show("No puedo cargar el fichero " + shd.InstaMSG, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                     //Establecemos el volumen de reproductor de instantaneos
-                    playerInsta.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+                    playerInsta.StreamVolumeLevelSet(0, (float)shd.VolMensajes, enumVolumeScales.SCALE_LINEAR);
                     //Bajamos el sonido del reproductor de musica                                                          
                     playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
                     //Bajamos el sonido del reproductor de mensajes automaticoss                                                       
@@ -757,12 +778,12 @@ namespace player
                     if (is_publi_file)
                     {
                         //Tomamos el volumen del trackbar de publicidad
-                        playerMusic.StreamVolumeLevelSet(0, (float)trackBarPubli.Value, enumVolumeScales.SCALE_LINEAR);
+                        playerMusic.StreamVolumeLevelSet(0, (float)shd.VolPublicidad, enumVolumeScales.SCALE_LINEAR);
                     }
                     else //Es una cancion normal
                     {
-                        //Tomamos el volumen del trackbar de música
-                        playerMusic.StreamVolumeLevelSet(0, (float)trackBarMusica.Value, enumVolumeScales.SCALE_LINEAR);
+                        //Tomamos el volumen de música
+                        playerMusic.StreamVolumeLevelSet(0, (float)shd.VolMusica, enumVolumeScales.SCALE_LINEAR);
                     }
                     //Habilitamos el boton del player instantaneo
                     sendMsgInst.Enabled = true;
@@ -815,6 +836,8 @@ namespace player
                         {
                             MessageBox.Show("No puedo cargar el fichero " + song, "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
                         }
+                        //Tomamos el volumen de música
+                        playerMusic.StreamVolumeLevelSet(0, (float)shd.VolMusica, enumVolumeScales.SCALE_LINEAR);
                         playerMusic.PlaySound(0);
                         playlist.Dequeue();
                     }
@@ -1017,7 +1040,7 @@ namespace player
         private void playerMsgAuto_SoundLoaded(object sender, SoundLoadedEventArgs e)
         {
             //Establecemos el volumen para los msg auto                                                      
-            playerMsgAuto.StreamVolumeLevelSet(0, (float)trackBarMsg.Value, enumVolumeScales.SCALE_LINEAR);
+            playerMsgAuto.StreamVolumeLevelSet(0, (float)shd.VolMensajes, enumVolumeScales.SCALE_LINEAR);
             //Bajamos el sonido del reproductor de musica                                                          
             playerMusic.StreamVolumeLevelSet(0, (float)0.0, enumVolumeScales.SCALE_LINEAR);
         }
@@ -1036,7 +1059,7 @@ namespace player
         //Guarda en un listado los ficheros MP3 de las carpetas marcadas
         private void listMusicDirs_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            prob.Items.Clear();
+            shd.Music.Clear();
             if (e.NewValue == CheckState.Unchecked)
             {
                 mus.UpdateCheckMusica(listMusicDirs.Items[e.Index].ToString(), 0);
@@ -1045,21 +1068,18 @@ namespace player
             {
                 mus.UpdateCheckMusica(listMusicDirs.Items[e.Index].ToString(), 1);
             }
-            changes_in_PL = true;
-            /*
-                foreach (string subdir in shd.SubDirs)
+            //Tomamos el listado de las carptas marcadas
+            List<string> marcadas = mus.AllCheckedMusic();
+            foreach (string subdir in marcadas)
+            {
+                if (canAccess(subdir))
                 {
-                    if (canAccess(subdir))
-                    {
-                        if (subdir.Contains(lst))
-                        {
-                            //Guardamos ficheros mp3/wav en el listado
-                            shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
-                                      .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
-                        }
-                    }
+                    //Guardamos ficheros mp3/wav en el listado
+                    shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
+                                .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
                 }
-                */
+            }
+            changes_in_PL = true;
         }
     }
 }

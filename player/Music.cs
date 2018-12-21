@@ -77,7 +77,7 @@ namespace player
                 return existe;
             }
         }
-        //Carga el valor del server
+        //Carga el valor del directorio raiz
         public string CargarDirectorioRaiz()
         {
             lock (bloqueo)
@@ -92,7 +92,6 @@ namespace player
                     while (datos.Read())
                     {
                         output = datos.GetString(datos.GetOrdinal("dir"));
-
                     }
                     connection.Close();
                 }
@@ -193,7 +192,7 @@ namespace player
                 }
             }
         }
-        //Borrar directorios de música de BD
+        //Envia un listado con los nombre de directorios 
         public List<string> ListadoDirectoriosMusica()
         {
             lock (bloqueo)
@@ -256,6 +255,32 @@ namespace player
                     connection.Close();
                 }
                 return res;
+            }
+        }
+        //Envia un listado de los directorios chequeados
+        public List<string> AllCheckedMusic()
+        {
+            lock (bloqueo)
+            {
+                List<string> listado = new List<string>();
+                //Tomamos la ruta principal
+                string ruta_principal = CargarDirectorioRaiz();
+
+                using (connection = new SQLiteConnection(string_connection))
+                {
+                    connection.Open();
+                    //Tomamos el directorio de música
+                    string query = string.Format(@"SELECT directorio FROM directorios WHERE checkpoint=1");
+                    SQLiteCommand cmd = new SQLiteCommand(query, connection);
+                    SQLiteDataReader datos = cmd.ExecuteReader();
+                    while (datos.Read())
+                    {
+                        string dir = ruta_principal + datos.GetString(datos.GetOrdinal("directorio"));
+                        listado.Add(dir);
+                    }
+                    connection.Close();
+                }
+                return listado;
             }
         }
     }

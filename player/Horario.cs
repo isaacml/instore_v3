@@ -162,11 +162,9 @@ namespace player
                     while (datos.Read())
                     {
                         //Recogemos los ficheros
-                        string h_ini = datos.GetString(datos.GetOrdinal("hora_inicial"));
-                        string h_fin = datos.GetString(datos.GetOrdinal("hora_final"));
-                        int h_ini_int = Convert.ToInt32(h_ini);
-                        int h_fin_int = Convert.ToInt32(h_fin);
-                        if (now > h_ini_int && now < h_fin_int)
+                        int h_ini = datos.GetInt32(datos.GetOrdinal("hora_inicial"));
+                        int h_fin = datos.GetInt32(datos.GetOrdinal("hora_final"));
+                        if (now > h_ini && now < h_fin)
                         {
                             sol = sol || true;
                         }
