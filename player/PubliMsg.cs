@@ -27,7 +27,7 @@ namespace player
             pfordown = new List<string>();
             mfordown = new List<string>();
             dir_publi = Path.GetFullPath(@"PUBLI/");
-            dir_msg = Path.GetFullPath("MSG/");
+            dir_msg = Path.GetFullPath(@"MSG/");
         }
         //Publicidad que tiene que descargarse la tienda
         public List<string> DownloadPubli()
