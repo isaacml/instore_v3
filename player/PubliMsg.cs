@@ -26,8 +26,8 @@ namespace player
             string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
             pfordown = new List<string>();
             mfordown = new List<string>();
-            dir_publi = "PUBLI/";
-            dir_msg = "MSG/";
+            dir_publi = Path.GetFullPath(@"PUBLI/");
+            dir_msg = Path.GetFullPath("MSG/");
         }
         //Publicidad que tiene que descargarse la tienda
         public List<string> DownloadPubli()

@@ -22,8 +22,8 @@ namespace player
         private int segs_of_day = 86400;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
         private string file_config = Path.GetFullPath("config.ini");
-        private string publi_folder = @"PUBLI/";
-        private string msg_folder = @"MSG/";
+        private string publi_folder = Path.GetFullPath(@"PUBLI/");
+        private string msg_folder = Path.GetFullPath(@"MSG/");
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private Connect con = new Connect();
