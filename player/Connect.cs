@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Net;
+using System.IO;
 
 namespace player
 {
@@ -18,7 +19,7 @@ namespace player
         public Connect()
         {
             wCli = new WebClient();
-            string_connection = @"Data Source=shop.db; Version=3;";
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
         }
 
         //Guarda una conexion en BD (Server o Proxy)

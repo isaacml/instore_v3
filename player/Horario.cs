@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 
@@ -15,7 +16,7 @@ namespace player
 
         public Horario()
         {
-            string_connection = @"Data Source=shop.db; Version=3;";
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
         }
 
         //Existencia de hora en bd
@@ -27,12 +28,15 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT * FROM horario");
+                    string query = string.Format(@"SELECT count(*) as cont FROM horario");
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
-                    if (datos.StepCount == 0)
+                    while (datos.Read())
                     {
-                        existe = false;
+                        if (datos.GetInt32(datos.GetOrdinal("cont")) == 0)
+                        {
+                            existe = false;
+                        }
                     }
                     connection.Close();
                 }
@@ -48,14 +52,18 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT * FROM aux");
+                    string query = string.Format(@"SELECT count(*) as cont FROM auxiliar");
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
-                    if (datos.StepCount == 0)
+                    while (datos.Read())
                     {
-                        existe = false;
+                        if (datos.GetInt32(datos.GetOrdinal("cont")) == 0)
+                        {
+                            existe = false;
+                        }
                     }
                     connection.Close();
+
                 }
                 return existe;
             }
@@ -83,7 +91,7 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"INSERT INTO aux ('hora_inicial', 'hora_final') VALUES ({0}, {1});", hora_inicial, hora_final);
+                    string query = string.Format(@"INSERT INTO auxiliar ('hora_inicial', 'hora_final') VALUES ({0}, {1});", hora_inicial, hora_final);
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -113,7 +121,7 @@ namespace player
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"DELETE FROM aux");
+                    string query = string.Format(@"DELETE FROM auxiliar");
                     SQLiteCommand cmd_exc = new SQLiteCommand(query, connection);
                     cmd_exc.ExecuteNonQuery();
                     connection.Close();
@@ -152,11 +160,10 @@ namespace player
                 bool sol = false;
                 //hora actual
                 int now = Hour2min(DateTime.Now.ToString("HH:mm"));
-
                 using (connection = new SQLiteConnection(string_connection))
                 {
                     connection.Open();
-                    string query = string.Format(@"SELECT hora_inicial, hora_final FROM aux");
+                    string query = string.Format(@"SELECT hora_inicial, hora_final FROM auxiliar");
                     SQLiteCommand cmd = new SQLiteCommand(query, connection);
                     SQLiteDataReader datos = cmd.ExecuteReader();
                     while (datos.Read())

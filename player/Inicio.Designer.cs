@@ -634,7 +634,7 @@
             // 
             // openMsgInst
             // 
-            this.openMsgInst.Filter = "Archivos MP3|*.mp3|Archivos WAV|*.wav";
+            this.openMsgInst.Filter = "Archivos MP3|*.mp3|Archivos WMA|*.wma";
             // 
             // contextMenuStrip1
             // 

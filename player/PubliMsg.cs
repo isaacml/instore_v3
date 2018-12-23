@@ -23,9 +23,9 @@ namespace player
 
         public PubliMsg()
         {
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
             pfordown = new List<string>();
             mfordown = new List<string>();
-            string_connection = @"Data Source=shop.db; Version=3;";
             dir_publi = "PUBLI/";
             dir_msg = "MSG/";
         }

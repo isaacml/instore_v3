@@ -21,7 +21,7 @@ namespace player
         private double songduration = 0;
         private int segs_of_day = 86400;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
-        private string file_config = "config.ini";
+        private string file_config = Path.GetFullPath("config.ini");
         private string publi_folder = @"PUBLI/";
         private string msg_folder = @"MSG/";
         private Object obj = new Object(); // para bloqueo
@@ -252,7 +252,7 @@ namespace player
                             {
                                 //Guardamos ficheros mp3/wav en el listado
                                 shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
-                                            .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
+                                            .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".wma") || f.EndsWith(".xxx")));
                             }
                         }
                     }
@@ -1076,7 +1076,7 @@ namespace player
                 {
                     //Guardamos ficheros mp3/wav en el listado
                     shd.Music.AddRange(Directory.GetFiles(subdir, "*.*", SearchOption.AllDirectories)
-                                .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".xxx")));
+                                .Where(f => f.EndsWith(".mp3") || f.EndsWith(".wav") || f.EndsWith(".wma") || f.EndsWith(".xxx")));
                 }
             }
             changes_in_PL = true;

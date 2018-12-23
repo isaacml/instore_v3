@@ -27,7 +27,7 @@ namespace player
         public Shared()
         {
             musica = new List<string>();
-            string_connection = @"Data Source=shop.db; Version=3;";
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
         }
 
         //Estado de la tienda
@@ -213,7 +213,6 @@ namespace player
                         }
                         connection.Close();
                     }
-
                     return vol_msg;
                 }
             }
