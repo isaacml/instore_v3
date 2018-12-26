@@ -75,10 +75,6 @@
             this.domPais = new System.Windows.Forms.ComboBox();
             this.domAlmacen = new System.Windows.Forms.ComboBox();
             this.domEntidad = new System.Windows.Forms.ComboBox();
-            this.barra_estado = new System.Windows.Forms.StatusStrip();
-            this.barStInfoServ = new System.Windows.Forms.ToolStripStatusLabel();
-            this.barStStatus = new System.Windows.Forms.ToolStripProgressBar();
-            this.barStSong = new System.Windows.Forms.ToolStripStatusLabel();
             this.openMsgInst = new System.Windows.Forms.OpenFileDialog();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.mostrarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -91,6 +87,10 @@
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.tPlayer = new System.Windows.Forms.Timer(this.components);
+            this.barra_estado = new System.Windows.Forms.StatusStrip();
+            this.barStInfoServ = new System.Windows.Forms.ToolStripStatusLabel();
+            this.barStStatus = new System.Windows.Forms.ToolStripProgressBar();
+            this.barStSong = new System.Windows.Forms.ToolStripStatusLabel();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -101,11 +101,11 @@
             this.groupHorario.SuspendLayout();
             this.Configuración.SuspendLayout();
             this.groupBoxDom.SuspendLayout();
-            this.barra_estado.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorAddDom)).BeginInit();
+            this.barra_estado.SuspendLayout();
             this.SuspendLayout();
             // 
             // tabControl1
@@ -601,33 +601,6 @@
             this.domEntidad.Text = "<Entidad>";
             this.domEntidad.SelectedIndexChanged += new System.EventHandler(this.domEntidad_SelectedIndexChanged);
             // 
-            // barra_estado
-            // 
-            this.barra_estado.Location = new System.Drawing.Point(0, 435);
-            this.barra_estado.Name = "barra_estado";
-            this.barra_estado.Size = new System.Drawing.Size(760, 22);
-            this.barra_estado.TabIndex = 1;
-            this.barra_estado.Text = "barra_estado";
-            // 
-            // barStInfoServ
-            // 
-            this.barStInfoServ.ForeColor = System.Drawing.Color.Green;
-            this.barStInfoServ.Name = "barStInfoServ";
-            this.barStInfoServ.Size = new System.Drawing.Size(42, 17);
-            this.barStInfoServ.Text = "Estado";
-            // 
-            // barStStatus
-            // 
-            this.barStStatus.Name = "barStStatus";
-            this.barStStatus.Size = new System.Drawing.Size(200, 16);
-            this.barStStatus.Step = 1;
-            // 
-            // barStSong
-            // 
-            this.barStSong.Name = "barStSong";
-            this.barStSong.Size = new System.Drawing.Size(102, 17);
-            this.barStSong.Text = "Playing song.mp3";
-            // 
             // openMsgInst
             // 
             this.openMsgInst.Filter = "Archivos MP3|*.mp3|Archivos WMA|*.wma";
@@ -691,6 +664,36 @@
             this.tPlayer.Interval = 1000;
             this.tPlayer.Tick += new System.EventHandler(this.tPlayer_Tick);
             // 
+            // barra_estado
+            // 
+            this.barra_estado.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.barStInfoServ,
+            this.barStStatus,
+            this.barStSong});
+            this.barra_estado.Location = new System.Drawing.Point(0, 435);
+            this.barra_estado.Name = "barra_estado";
+            this.barra_estado.Size = new System.Drawing.Size(760, 22);
+            this.barra_estado.TabIndex = 1;
+            this.barra_estado.Text = "statusStrip1";
+            // 
+            // barStInfoServ
+            // 
+            this.barStInfoServ.ForeColor = System.Drawing.Color.Green;
+            this.barStInfoServ.Name = "barStInfoServ";
+            this.barStInfoServ.Size = new System.Drawing.Size(42, 17);
+            this.barStInfoServ.Text = "Estado";
+            // 
+            // barStStatus
+            // 
+            this.barStStatus.Name = "barStStatus";
+            this.barStStatus.Size = new System.Drawing.Size(175, 16);
+            // 
+            // barStSong
+            // 
+            this.barStSong.Name = "barStSong";
+            this.barStSong.Size = new System.Drawing.Size(75, 17);
+            this.barStSong.Text = "playing.song";
+            // 
             // Inicio
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -720,12 +723,12 @@
             this.Configuración.ResumeLayout(false);
             this.Configuración.PerformLayout();
             this.groupBoxDom.ResumeLayout(false);
-            this.barra_estado.ResumeLayout(false);
-            this.barra_estado.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.errorServer)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorProxy)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.errorAddDom)).EndInit();
+            this.barra_estado.ResumeLayout(false);
+            this.barra_estado.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -737,10 +740,6 @@
         private System.Windows.Forms.TabPage Música;
         private System.Windows.Forms.TabPage Controles;
         private System.Windows.Forms.TabPage Configuración;
-        private System.Windows.Forms.StatusStrip barra_estado;
-        private System.Windows.Forms.ToolStripStatusLabel barStInfoServ;
-        private System.Windows.Forms.ToolStripProgressBar barStStatus;
-        private System.Windows.Forms.ToolStripStatusLabel barStSong;
         private System.Windows.Forms.OpenFileDialog openMsgInst;
         private System.Windows.Forms.TextBox msgIns;
         private System.Windows.Forms.Button sendMsgInst;
@@ -794,6 +793,10 @@
         private System.Windows.Forms.Timer tPlayer;
         private AudioDjStudio.AudioDjStudio playerInsta;
         private AudioDjStudio.AudioDjStudio playerMsgAuto;
+        private System.Windows.Forms.StatusStrip barra_estado;
+        private System.Windows.Forms.ToolStripStatusLabel barStInfoServ;
+        private System.Windows.Forms.ToolStripProgressBar barStStatus;
+        private System.Windows.Forms.ToolStripStatusLabel barStSong;
     }
 }
 

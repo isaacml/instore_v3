@@ -190,7 +190,7 @@ namespace player
             //Crear ficheros
             crearDirectorios((string)Properties.Resources.CarpetaMSG);
             crearDirectorios((string)Properties.Resources.CarpetaPUBLI);
-            file_config = crearFicheroConfig((string)Properties.Resources.FicheroCONFIG);
+            crearFicheroConfig((string)Properties.Resources.FicheroCONFIG);
             crearFicheroDB((string)Properties.Resources.FicheroSQL);
 
             if (nOutputsI == 0 && nOutputsM == 0 && nOutputsA == 0)
@@ -693,14 +693,14 @@ namespace player
             {
                 if (hro.ShopLastConnect() - (timestamp - segs_month) < 0)
                 {
-                    barStInfoServ.ForeColor = Color.Red;
-                    barStInfoServ.Text = "Desactivada";
+                    barStStatus.ForeColor = Color.Red;
+                    barStStatus.Text = "Desactivada";
                     estado_tienda = false;
                 }
                 else
                 {
-                    barStInfoServ.ForeColor = Color.Green;
-                    barStInfoServ.Text = "Activada";
+                    barStStatus.ForeColor = Color.Green;
+                    barStStatus.Text = "Activada";
                     estado_tienda = true;
                 }
             }
@@ -711,16 +711,16 @@ namespace player
                 {
                     //Cambiamos el last connect
                     hro.EditLastConnect(timestamp);
-                    barStInfoServ.ForeColor = Color.Green;
-                    barStInfoServ.Text = "Activada";
+                    barStStatus.ForeColor = Color.Green;
+                    barStStatus.Text = "Activada";
                     estado_tienda = true;
                 }
                 if (shd.Status == "0")
                 {
                     //Cambiamos el last connect
                     hro.EditLastConnect(1000);
-                    barStInfoServ.ForeColor = Color.Red;
-                    barStInfoServ.Text = "Desactivada";
+                    barStStatus.ForeColor = Color.Red;
+                    barStStatus.Text = "Desactivada";
                     estado_tienda = false;
                 }
             }
@@ -1112,9 +1112,10 @@ namespace player
             Directory.CreateDirectory(fullDIR);
         }
         //Crear el fichero de configuración
-        private string crearFicheroConfig(string file)
+        private void crearFicheroConfig(string file)
         {
             string path = documents + file;
+            file_config = path;
             //Si existe lo borramos
             if (File.Exists(path))
             {
@@ -1126,7 +1127,6 @@ namespace player
                 Byte[] texto = new UTF8Encoding(true).GetBytes("entidad=Acciona");
                 fs.Write(texto, 0, texto.Length);
             }
-            return path;
         }
         //Copia el fichero db en Mis Documentos
         private void crearFicheroDB(string db)
@@ -1137,6 +1137,11 @@ namespace player
             }
             //Compiamos la base de datos
             File.Copy(Path.GetFullPath("db/shop.db"), database);
+        }
+
+        private void toolStripStatusLabel1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
