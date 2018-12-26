@@ -91,7 +91,6 @@
             this.errorAddDom = new System.Windows.Forms.ErrorProvider(this.components);
             this.Timer1MIN = new System.Windows.Forms.Timer(this.components);
             this.tPlayer = new System.Windows.Forms.Timer(this.components);
-            this.prob = new System.Windows.Forms.ListBox();
             this.tabControl1.SuspendLayout();
             this.Música.SuspendLayout();
             this.Controles.SuspendLayout();
@@ -123,7 +122,6 @@
             // 
             // Música
             // 
-            this.Música.Controls.Add(this.prob);
             this.Música.Controls.Add(this.playerInsta);
             this.Música.Controls.Add(this.lblListDirMusic);
             this.Música.Controls.Add(this.listMusicDirs);
@@ -605,10 +603,6 @@
             // 
             // barra_estado
             // 
-            this.barra_estado.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.barStInfoServ,
-            this.barStStatus,
-            this.barStSong});
             this.barra_estado.Location = new System.Drawing.Point(0, 435);
             this.barra_estado.Name = "barra_estado";
             this.barra_estado.Size = new System.Drawing.Size(760, 22);
@@ -696,14 +690,6 @@
             // 
             this.tPlayer.Interval = 1000;
             this.tPlayer.Tick += new System.EventHandler(this.tPlayer_Tick);
-            // 
-            // prob
-            // 
-            this.prob.FormattingEnabled = true;
-            this.prob.Location = new System.Drawing.Point(97, 7);
-            this.prob.Name = "prob";
-            this.prob.Size = new System.Drawing.Size(566, 43);
-            this.prob.TabIndex = 11;
             // 
             // Inicio
             // 
@@ -808,7 +794,6 @@
         private System.Windows.Forms.Timer tPlayer;
         private AudioDjStudio.AudioDjStudio playerInsta;
         private AudioDjStudio.AudioDjStudio playerMsgAuto;
-        private System.Windows.Forms.ListBox prob;
     }
 }
 
