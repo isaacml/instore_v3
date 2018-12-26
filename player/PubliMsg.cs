@@ -23,11 +23,11 @@ namespace player
 
         public PubliMsg()
         {
-            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.FicheroSQL);
+            dir_publi = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.CarpetaPUBLI;
+            dir_msg = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.CarpetaMSG;
             pfordown = new List<string>();
             mfordown = new List<string>();
-            dir_publi = Path.GetFullPath(@"PUBLI/");
-            dir_msg = Path.GetFullPath(@"MSG/");
         }
         //Publicidad que tiene que descargarse la tienda
         public List<string> DownloadPubli()

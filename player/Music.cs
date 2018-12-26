@@ -15,7 +15,7 @@ namespace player
 
         public Music()
         {
-            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.FicheroSQL);
         }
 
         //Guarda el directorio raiz en BD, para el caso de que se reinicie la máquina

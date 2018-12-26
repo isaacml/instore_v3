@@ -16,7 +16,7 @@ namespace player
 
         public Domains()
         {
-            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.FicheroSQL);
         }
         //Envia listado de dominios
         public List<string> ListadoDominios()

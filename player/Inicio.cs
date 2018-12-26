@@ -21,9 +21,13 @@ namespace player
         private double songduration = 0;
         private int segs_of_day = 86400;
         private byte[] KeyCode = new byte[] { 11, 22, 33, 44, 55, 66, 77, 88 }; //decription keys
-        private string file_config = Path.GetFullPath("config.ini");
-        private string publi_folder = Path.GetFullPath(@"PUBLI/");
-        private string msg_folder = Path.GetFullPath(@"MSG/");
+        private string documents = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments); //Mis documentos
+        //Variables de directorios y ficheros
+        private string file_config;
+        private string publi_folder;
+        private string msg_folder;
+        //Determina si es un fichero de publicidad
+        private bool is_publi_file;
         private Object obj = new Object(); // para bloqueo
         private Shared shd = new Shared();
         private Connect con = new Connect();
@@ -39,8 +43,6 @@ namespace player
         private bool changes_in_PL = false;
         //Evalua el estado de la tienda: activada o bloqueada
         private bool estado_tienda = false;
-        //Determina si es un fichero de publicidad
-        private bool is_publi_file;
 
         public Inicio()
         {
@@ -185,6 +187,12 @@ namespace player
             Int32 nOutputsI = playerInsta.GetOutputDevicesCount();
             Int32 nOutputsM = playerMusic.GetOutputDevicesCount();
             Int32 nOutputsA = playerMsgAuto.GetOutputDevicesCount();
+            //Crear ficheros
+            crearDirectorios((string)Properties.Resources.CarpetaMSG);
+            crearDirectorios((string)Properties.Resources.CarpetaPUBLI);
+            file_config = crearFicheroConfig((string)Properties.Resources.FicheroCONFIG);
+            crearFicheroDB((string)Properties.Resources.FicheroSQL);
+
             if (nOutputsI == 0 && nOutputsM == 0 && nOutputsA == 0)
             {
                 MessageBox.Show("No hay dispositivos de audio.", "Error Grave", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -1080,6 +1088,55 @@ namespace player
                 }
             }
             changes_in_PL = true;
+        }
+        //Crear los directorios PUBLI/ y MSG/
+        private void crearDirectorios(string dir)
+        {
+            //Ruta completa
+            string fullDIR = documents + dir;
+            //Establecemos ruta completa para la carpta publi
+            if (fullDIR.Contains("PUBLI"))
+            {
+                publi_folder = fullDIR;
+            }
+            //Establecemos ruta completa para la carpta msg
+            if (fullDIR.Contains("MSG"))
+            {
+                msg_folder = fullDIR;
+            }
+            //Determinamos si el fichero está creado
+            if (Directory.Exists(fullDIR))
+            {
+                return;
+            }
+            Directory.CreateDirectory(fullDIR);
+        }
+        //Crear el fichero de configuración
+        private string crearFicheroConfig(string file)
+        {
+            string path = documents + file;
+            //Si existe lo borramos
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            //Creacion del fichero .config
+            using (FileStream fs = File.Create(path)) {
+                
+                Byte[] texto = new UTF8Encoding(true).GetBytes("entidad=Acciona");
+                fs.Write(texto, 0, texto.Length);
+            }
+            return path;
+        }
+        //Copia el fichero db en Mis Documentos
+        private void crearFicheroDB(string db)
+        {
+            string database = documents + db;
+            if (File.Exists(database)){
+                return;
+            }
+            //Compiamos la base de datos
+            File.Copy(Path.GetFullPath("db/shop.db"), database);
         }
     }
 }

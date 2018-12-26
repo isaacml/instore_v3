@@ -27,7 +27,7 @@ namespace player
         public Shared()
         {
             musica = new List<string>();
-            string_connection = string.Format(@"Data Source={0}; Version=3;", Path.GetFullPath("db/shop.db"));
+            string_connection = string.Format(@"Data Source={0}; Version=3;", Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + Properties.Resources.FicheroSQL);
         }
 
         //Estado de la tienda

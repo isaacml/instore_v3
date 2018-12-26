@@ -59,5 +59,41 @@ namespace player.Properties {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a \HMPro\MSG\.
+        /// </summary>
+        internal static string CarpetaMSG {
+            get {
+                return ResourceManager.GetString("CarpetaMSG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a \HMPro\PUBLI\.
+        /// </summary>
+        internal static string CarpetaPUBLI {
+            get {
+                return ResourceManager.GetString("CarpetaPUBLI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a \HMPro\config.ini.
+        /// </summary>
+        internal static string FicheroCONFIG {
+            get {
+                return ResourceManager.GetString("FicheroCONFIG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Busca una cadena traducida similar a \HMPro\shop.db.
+        /// </summary>
+        internal static string FicheroSQL {
+            get {
+                return ResourceManager.GetString("FicheroSQL", resourceCulture);
+            }
+        }
     }
 }
