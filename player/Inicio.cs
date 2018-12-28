@@ -693,14 +693,14 @@ namespace player
             {
                 if (hro.ShopLastConnect() - (timestamp - segs_month) < 0)
                 {
-                    barStStatus.ForeColor = Color.Red;
-                    barStStatus.Text = "Desactivada";
+                    barStInfoServ.ForeColor = Color.Red;
+                    barStInfoServ.Text = "Desactivada";
                     estado_tienda = false;
                 }
                 else
                 {
-                    barStStatus.ForeColor = Color.Green;
-                    barStStatus.Text = "Activada";
+                    barStInfoServ.ForeColor = Color.Green;
+                    barStInfoServ.Text = "Activada";
                     estado_tienda = true;
                 }
             }
@@ -711,16 +711,16 @@ namespace player
                 {
                     //Cambiamos el last connect
                     hro.EditLastConnect(timestamp);
-                    barStStatus.ForeColor = Color.Green;
-                    barStStatus.Text = "Activada";
+                    barStInfoServ.ForeColor = Color.Green;
+                    barStInfoServ.Text = "Activada";
                     estado_tienda = true;
                 }
                 if (shd.Status == "0")
                 {
                     //Cambiamos el last connect
                     hro.EditLastConnect(1000);
-                    barStStatus.ForeColor = Color.Red;
-                    barStStatus.Text = "Desactivada";
+                    barStInfoServ.ForeColor = Color.Red;
+                    barStInfoServ.Text = "Desactivada";
                     estado_tienda = false;
                 }
             }
